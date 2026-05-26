@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "277126897909",
+    "firebase_url": "https://rockstar-4e4de-default-rtdb.firebaseio.com",
+    "project_id": "rockstar-4e4de",
+    "storage_bucket": "rockstar-4e4de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:277126897909:android:529b1202e54f2438cae5bc",
+        "android_client_info": {
+          "package_name": "com.example.rockstar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPmbnpWEbqapPGTrNUP_f__i6WDncTB_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
