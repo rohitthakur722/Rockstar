@@ -31,20 +31,19 @@ class UserViewModel(val repo : UserRepo) : ViewModel() {
         val users: MutableLiveData<UserModel?> get() = _users
 
 
-        fun getUserById(
-            id: String
-        ) {
-            _loading.value = true
-            repo.getUserById(id) { success, msg, data ->
-                if (success) {
-                    _users.value = data
-                    _loading.value = false
-                } else {
-                    _users.value = null
-                    _loading.value = false
-                }
+    fun getAllUsers() {
+        _loading.value = true
+        repo.getAllUsers { success, message, data ->
+            if (success) {
+                _loading.value = false
+                _allUsers.value = data
+            } else {
+                _loading.value = false
+                _allUsers.value = emptyList()
             }
+
         }
+    }
 
         private val _allUsers = MutableLiveData<List<UserModel?>>()
         val allUsers: MutableLiveData<List<UserModel?>> get() = _allUsers
