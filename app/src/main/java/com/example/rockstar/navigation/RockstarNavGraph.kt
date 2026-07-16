@@ -1,11 +1,13 @@
 package com.example.rockstar.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.rockstar.repo.MediaStoreMusicRepository
 import com.example.rockstar.repo.UserRepoImpl
 import com.example.rockstar.ui.screens.account.AccountScreen
 import com.example.rockstar.ui.screens.auth.ForgotPasswordScreen
@@ -16,6 +18,8 @@ import com.example.rockstar.ui.screens.liked.LikedScreen
 import com.example.rockstar.ui.screens.playlists.PlaylistsScreen
 import com.example.rockstar.ui.screens.songs.AllSongsScreen
 import com.example.rockstar.ui.screens.splash.SplashScreen
+import com.example.rockstar.viewmodel.MusicLibraryViewModel
+import com.example.rockstar.viewmodel.MusicLibraryViewModelFactory
 import com.example.rockstar.viewmodel.UserViewModel
 import com.example.rockstar.viewmodel.UserViewModelFactory
 
@@ -23,7 +27,11 @@ import com.example.rockstar.viewmodel.UserViewModelFactory
 fun RockstarNavGraph(
     navController: NavHostController = rememberNavController()
 ) {
+    val context = LocalContext.current.applicationContext
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepoImpl()))
+    val musicLibraryViewModel: MusicLibraryViewModel = viewModel(
+        factory = MusicLibraryViewModelFactory(MediaStoreMusicRepository(context.contentResolver))
+    )
 
     NavHost(
         navController = navController,
@@ -81,7 +89,8 @@ fun RockstarNavGraph(
         composable(RockstarDestination.Home.route) {
             HomeScreen(
                 currentRoute = RockstarDestination.Home.route,
-                onTabSelected = { destination -> navController.navigateToTab(destination) }
+                onTabSelected = { destination -> navController.navigateToTab(destination) },
+                viewModel = musicLibraryViewModel
             )
         }
 
@@ -102,7 +111,8 @@ fun RockstarNavGraph(
         composable(RockstarDestination.AllSongs.route) {
             AllSongsScreen(
                 currentRoute = RockstarDestination.AllSongs.route,
-                onTabSelected = { destination -> navController.navigateToTab(destination) }
+                onTabSelected = { destination -> navController.navigateToTab(destination) },
+                viewModel = musicLibraryViewModel
             )
         }
 

@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,43 +21,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.rockstar.ui.screens.home.PreviewRecentlyAdded
+import com.example.rockstar.model.Artist
 import com.example.rockstar.ui.theme.RockstarSurfaceElevated
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
 
 @Composable
-fun RecentlyPlayedRow(song: PreviewRecentlyAdded, modifier: Modifier = Modifier) {
+fun ArtistRow(artist: Artist, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(50.dp)
-                .clip(MaterialTheme.shapes.small)
+                .size(56.dp)
+                .clip(CircleShape)
                 .background(RockstarSurfaceElevated),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = song.icon,
-                contentDescription = null,
-                tint = RockstarTextSecondary,
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(Icons.Default.Person, contentDescription = null, tint = RockstarTextSecondary)
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = song.title,
+                text = artist.name,
                 color = RockstarTextPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            Text(
+                text = "${artist.songCount} songs • ${artist.albumCount} albums",
+                color = RockstarTextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
-        Text(text = song.duration, color = RockstarTextSecondary, style = MaterialTheme.typography.bodyMedium)
-        Spacer(modifier = Modifier.width(12.dp))
-        Icon(Icons.Default.MoreVert, contentDescription = null, tint = RockstarTextSecondary)
     }
 }
