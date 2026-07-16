@@ -23,18 +23,26 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rockstar.R
 import com.example.rockstar.ui.theme.RockstarAccent
 import com.example.rockstar.ui.theme.RockstarBackground
 import com.example.rockstar.ui.theme.RockstarTextSecondary
+import com.example.rockstar.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 
-private const val SPLASH_DURATION_MS = 1800L
+private const val MIN_BRANDING_DURATION_MS = 900L
 private const val SPLASH_ANIMATION_MS = 600
 
 @Composable
-fun SplashScreen(onSplashFinished: () -> Unit) {
+fun SplashScreen(
+    viewModel: UserViewModel,
+    onNavigateToHome: () -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
     var startAnimation by remember { mutableStateOf(false) }
+    var hasNavigated by remember { mutableStateOf(false) }
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
 
     val scale by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0.7f,
@@ -49,8 +57,15 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(SPLASH_DURATION_MS)
-        onSplashFinished()
+    }
+
+    // Authentication state — not a fixed timer — decides the destination.
+    // The minimum branding delay only smooths out a near-instant resolution.
+    LaunchedEffect(authState.isSessionResolved) {
+        if (!authState.isSessionResolved || hasNavigated) return@LaunchedEffect
+        delay(MIN_BRANDING_DURATION_MS)
+        hasNavigated = true
+        if (authState.isAuthenticated) onNavigateToHome() else onNavigateToLogin()
     }
 
     Box(

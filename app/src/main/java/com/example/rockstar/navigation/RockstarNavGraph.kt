@@ -31,9 +31,15 @@ fun RockstarNavGraph(
     ) {
         composable(RockstarDestination.Splash.route) {
             SplashScreen(
-                onSplashFinished = {
+                viewModel = userViewModel,
+                onNavigateToHome = {
+                    navController.navigate(RockstarDestination.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
                     navController.navigate(RockstarDestination.Login.route) {
-                        popUpTo(RockstarDestination.Splash.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -44,7 +50,7 @@ fun RockstarNavGraph(
                 viewModel = userViewModel,
                 onLoginSuccess = {
                     navController.navigate(RockstarDestination.Home.route) {
-                        popUpTo(RockstarDestination.Login.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onNavigateToRegister = { navController.navigate(RockstarDestination.Register.route) },
@@ -56,8 +62,8 @@ fun RockstarNavGraph(
             RegisterScreen(
                 viewModel = userViewModel,
                 onRegistrationSuccess = {
-                    navController.navigate(RockstarDestination.Login.route) {
-                        popUpTo(RockstarDestination.Register.route) { inclusive = true }
+                    navController.navigate(RockstarDestination.Home.route) {
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onNavigateToLogin = { navController.popBackStack() },

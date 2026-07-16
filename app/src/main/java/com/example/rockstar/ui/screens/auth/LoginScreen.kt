@@ -1,6 +1,5 @@
 package com.example.rockstar.ui.screens.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,9 +18,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,7 +48,8 @@ import com.example.rockstar.ui.theme.RockstarBackground
 import com.example.rockstar.ui.theme.RockstarSurface
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
-import com.example.rockstar.viewmodel.AuthUiState
+import com.example.rockstar.util.Validators
+import com.example.rockstar.viewmodel.AuthEvent
 import com.example.rockstar.viewmodel.UserViewModel
 
 @Composable
@@ -58,46 +59,64 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
-    val context = LocalContext.current
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val fillEmailPasswordMessage = stringResource(R.string.error_fill_email_password)
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is AuthUiState.Success -> {
-                onLoginSuccess()
-                viewModel.resetAuthState()
+    val invalidEmailMessage = stringResource(R.string.error_invalid_email)
+    val emptyPasswordMessage = stringResource(R.string.error_empty_password)
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is AuthEvent.NavigateToHome -> onLoginSuccess()
+                is AuthEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is AuthEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                else -> Unit
             }
-            is AuthUiState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetAuthState()
-            }
-            else -> Unit
         }
     }
 
-    LoginContent(
-        email = email,
-        onEmailChange = { email = it },
-        password = password,
-        onPasswordChange = { password = it },
-        passwordVisible = passwordVisible,
-        onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
-        loading = authState is AuthUiState.Loading,
-        onLoginClick = {
-            if (email.isBlank() || password.isBlank()) {
-                Toast.makeText(context, fillEmailPasswordMessage, Toast.LENGTH_SHORT).show()
-            } else {
-                viewModel.login(email, password)
-            }
-        },
-        onRegisterClick = onNavigateToRegister,
-        onForgotPasswordClick = onNavigateToForgotPassword
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LoginContent(
+            email = email,
+            onEmailChange = {
+                email = it
+                emailError = null
+            },
+            password = password,
+            onPasswordChange = {
+                password = it
+                passwordError = null
+            },
+            passwordVisible = passwordVisible,
+            onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
+            emailError = emailError,
+            passwordError = passwordError,
+            loading = authState.isLoading,
+            onLoginClick = {
+                val isEmailValid = Validators.isValidEmail(email)
+                val isPasswordValid = password.isNotBlank()
+                emailError = if (isEmailValid) null else invalidEmailMessage
+                passwordError = if (isPasswordValid) null else emptyPasswordMessage
+                if (isEmailValid && isPasswordValid) {
+                    viewModel.login(email, password)
+                }
+            },
+            onRegisterClick = onNavigateToRegister,
+            onForgotPasswordClick = onNavigateToForgotPassword
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable
@@ -111,6 +130,8 @@ fun LoginContent(
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit = {},
+    emailError: String? = null,
+    passwordError: String? = null,
     loading: Boolean = false
 ) {
     val passwordFocusRequester = remember { FocusRequester() }
@@ -170,6 +191,9 @@ fun LoginContent(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next,
                         onImeAction = { passwordFocusRequester.requestFocus() },
+                        isError = emailError != null,
+                        supportingText = emailError,
+                        enabled = !loading,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -186,6 +210,9 @@ fun LoginContent(
                         imeAction = ImeAction.Done,
                         onImeAction = onLoginClick,
                         focusRequester = passwordFocusRequester,
+                        isError = passwordError != null,
+                        supportingText = passwordError,
+                        enabled = !loading,
                         trailingIcon = {
                             PasswordVisibilityToggle(
                                 isVisible = passwordVisible,
@@ -211,7 +238,9 @@ fun LoginContent(
                     RockstarPrimaryButton(
                         text = stringResource(R.string.action_login),
                         onClick = onLoginClick,
-                        loading = loading
+                        enabled = !loading,
+                        loading = loading,
+                        modifier = Modifier.testTag("login_button")
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -235,13 +264,6 @@ fun LoginContent(
                     }
                 }
             }
-        }
-
-        if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = RockstarAccent
-            )
         }
     }
 }
