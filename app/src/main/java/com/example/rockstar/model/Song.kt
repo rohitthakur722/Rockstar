@@ -1,7 +1,5 @@
 package com.example.rockstar.model
 
-import android.net.Uri
-
 private const val UNKNOWN_ARTIST = "Unknown Artist"
 private const val UNKNOWN_ALBUM = "Unknown Album"
 private const val UNKNOWN_TITLE = "Untitled Song"
@@ -13,8 +11,8 @@ data class Song(
     val album: String,
     val albumId: Long?,
     val durationMs: Long,
-    val contentUri: Uri,
-    val artworkUri: Uri?,
+    val contentUri: String,
+    val artworkUri: String?,
     val dateAdded: Long,
     val trackNumber: Int?,
     val year: Int?,

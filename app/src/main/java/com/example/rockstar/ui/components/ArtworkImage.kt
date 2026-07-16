@@ -1,6 +1,6 @@
 package com.example.rockstar.ui.components
 
-import android.net.Uri
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +22,7 @@ import com.example.rockstar.ui.theme.RockstarTextSecondary
 
 @Composable
 fun ArtworkImage(
-    artworkUri: Uri?,
+    artworkUri: String?,
     modifier: Modifier = Modifier,
     size: Dp = 56.dp
 ) {
