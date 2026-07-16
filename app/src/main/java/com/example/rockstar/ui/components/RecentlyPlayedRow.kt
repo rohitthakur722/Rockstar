@@ -19,13 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.rockstar.ui.screens.home.DemoRecentlyPlayed
+import com.example.rockstar.ui.screens.home.PreviewRecentlyAdded
 import com.example.rockstar.ui.theme.RockstarSurfaceElevated
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
 
 @Composable
-fun RecentlyPlayedRow(song: DemoRecentlyPlayed, modifier: Modifier = Modifier) {
+fun RecentlyPlayedRow(song: PreviewRecentlyAdded, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically

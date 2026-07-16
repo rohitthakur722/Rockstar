@@ -89,7 +89,8 @@ fun RockstarNavGraph(
         composable(RockstarDestination.Home.route) {
             HomeScreen(
                 currentRoute = RockstarDestination.Home.route,
-                onTabSelected = { destination -> navController.navigateToTab(destination) }
+                onTabSelected = { destination -> navController.navigateToTab(destination) },
+                viewModel = musicLibraryViewModel
             )
         }
 

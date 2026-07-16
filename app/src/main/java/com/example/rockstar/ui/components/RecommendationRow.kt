@@ -24,14 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.rockstar.ui.screens.home.DemoRecommendation
+import com.example.rockstar.ui.screens.home.PreviewRecommendation
 import com.example.rockstar.ui.theme.RockstarSurfaceElevated
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
 
 @Composable
 fun RecommendationRow(
-    items: List<DemoRecommendation>,
+    items: List<PreviewRecommendation>,
     modifier: Modifier = Modifier
 ) {
     LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
