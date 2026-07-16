@@ -12,52 +12,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Rockstar">
         <activity
-            android:name=".PomodoroActivity"
-            android:exported="true"
-            android:label="@string/title_activity_pomodoro"
-            android:theme="@style/Theme.Rockstar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:label="@string/title_activity_splash"
-            android:theme="@style/Theme.Rockstar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".DashboardActivity"
-            android:exported="true"
-            android:label="@string/title_activity_dashboard"
-            android:theme="@style/Theme.Rockstar" />
-        <activity
-            android:name=".ForgotPasswordActivity"
-            android:exported="false"
-            android:label="@string/title_activity_forget_password"
-            android:theme="@style/Theme.Rockstar" />
-        <activity
-            android:name=".LoginScreen"
-            android:exported="true"
-            android:label="@string/title_activity_login_screen"
-            android:theme="@style/Theme.Rockstar" />
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="true"
-            android:label="@string/title_activity_register"
-            android:theme="@style/Theme.Rockstar" />
-        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Rockstar" />
+            android:theme="@style/Theme.Rockstar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
