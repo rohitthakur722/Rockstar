@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.rockstar.ui.screens.home.DemoRecentlyPlayed
 import com.example.rockstar.ui.theme.RockstarSurfaceElevated
@@ -48,7 +49,9 @@ fun RecentlyPlayedRow(song: DemoRecentlyPlayed, modifier: Modifier = Modifier) {
             Text(
                 text = song.title,
                 color = RockstarTextPrimary,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         Text(text = song.duration, color = RockstarTextSecondary, style = MaterialTheme.typography.bodyMedium)
