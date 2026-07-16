@@ -2,7 +2,9 @@
     <string name="app_name">Rockstar</string>
 
     <!-- Splash -->
-    <string name="splash_tagline">Everyone is a rockstar and we feel the music</string>
+    <string
+    name="splash_tagline"
+  >Everyone is a rockstar and we feel the music</string>
 
     <!-- Login -->
     <string name="login_welcome_title">Welcome Rockstar</string>
@@ -23,10 +25,14 @@
 
     <!-- Forgot password -->
     <string name="forgot_password_title">Forgot Password</string>
-    <string name="forgot_password_subtitle">Enter your email address and we will send you password reset instructions.</string>
+    <string
+    name="forgot_password_subtitle"
+  >Enter your email address and we will send you password reset instructions.</string>
     <string name="action_send_reset_link">Send Reset Link</string>
     <string name="prompt_remember_password">Remember password? </string>
-    <string name="forgot_password_sent_message">Reset link sent. Check your inbox.</string>
+    <string
+    name="forgot_password_sent_message"
+  >Reset link sent. Check your inbox.</string>
 
     <!-- Shared auth field labels -->
     <string name="placeholder_email">Enter your email</string>
@@ -36,7 +42,9 @@
     <string name="error_invalid_email">Enter a valid email address</string>
     <string name="error_empty_password">Enter your password</string>
     <string name="error_invalid_full_name">Enter your full name</string>
-    <string name="error_weak_password">Password must be at least 6 characters</string>
+    <string
+    name="error_weak_password"
+  >Password must be at least 6 characters</string>
     <string name="error_password_mismatch">Passwords do not match</string>
 
     <!-- Bottom navigation -->
@@ -55,32 +63,87 @@
     <string name="section_see_all">See all</string>
     <string name="featured_artist_label">ARTIST</string>
     <string name="featured_artist_name">Meet\nPhosphenes</string>
-    <string name="featured_artist_description">The indie band\nbased in Nepal.</string>
+    <string
+    name="featured_artist_description"
+  >The indie band\nbased in Nepal.</string>
     <string name="action_explore_now">Explore Now</string>
     <string name="default_user_name">Rockstar</string>
 
     <!-- Destination screens (later-phase features) -->
     <string name="empty_playlists_title">No Playlists Yet</string>
-    <string name="empty_playlists_message">Playlist creation is coming in a later phase.</string>
+    <string
+    name="empty_playlists_message"
+  >Playlist creation is coming in a later phase.</string>
     <string name="empty_liked_title">No Liked Songs Yet</string>
-    <string name="empty_liked_message">Liked songs will appear here once playback is implemented.</string>
+    <string
+    name="empty_liked_message"
+  >Liked songs will appear here once playback is implemented.</string>
     <string name="empty_songs_title">Your Library Is Empty</string>
-    <string name="empty_songs_message">Your song library will appear here once device scanning is implemented.</string>
-    <string name="action_log_out">Log Out</string>
+        <string
+    name="empty_songs_message"
+  >Your song library will appear here once device scanning is implemented.</string>
+        <string name="library_permission_title">Audio access needed</string>
+        <string
+    name="library_permission_message"
+  >Rockstar needs permission to scan audio already stored on this device and build your local library.</string>
+        <string
+    name="library_permission_rationale_message"
+  >Allow audio access so Rockstar can show your local songs, albums and artists.</string>
+        <string
+    name="library_permission_denied_message"
+  >Audio access was denied. You can try again when you are ready.</string>
+        <string
+    name="library_permission_settings_title"
+  >Enable audio access in Settings</string>
+        <string
+    name="library_permission_settings_message"
+  >Android is blocking another permission prompt. Open app settings and allow Music and audio access.</string>
+        <string name="action_allow_audio_access">Allow Audio Access</string>
+        <string name="action_open_settings">Open Settings</string>
+        <string name="library_loading">Scanning your local music…</string>
+        <string name="library_empty_title">No local songs found</string>
+        <string
+    name="library_empty_message"
+  >When music files are available on this device, they will appear here.</string>
+        <string name="library_no_results_title">No matching music</string>
+        <string
+    name="library_no_results_message"
+  >Try searching by another song, artist or album.</string>
+        <string name="library_song_count">Showing %1$d of %2$d songs</string>
+        <string name="library_section_songs">Songs</string>
+        <string name="library_section_albums">Albums</string>
+        <string name="library_section_artists">Artists</string>
+        <string name="sort_title">Title</string>
+        <string name="sort_artist">Artist</string>
+        <string name="sort_album">Album</string>
+        <string name="sort_date_added">Date Added</string>
+        <string name="sort_duration">Duration</string>
+        <string name="sort_year">Year</string>
+        <string name="sort_ascending">Ascending</string>
+        <string name="sort_descending">Descending</string>
+        <string name="action_log_out">Log Out</string>
     <string name="action_edit_profile">Edit Profile</string>
     <string name="edit_profile_title">Edit Profile</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="logout_confirm_title">Log Out</string>
-    <string name="logout_confirm_message">Are you sure you want to log out?</string>
-    <string name="account_profile_unavailable_title">Profile Unavailable</string>
-    <string name="account_profile_unavailable_message">We could not load your profile. Please check your connection and try again.</string>
+    <string
+    name="logout_confirm_message"
+  >Are you sure you want to log out?</string>
+    <string
+    name="account_profile_unavailable_title"
+  >Profile Unavailable</string>
+    <string
+    name="account_profile_unavailable_message"
+  >We could not load your profile. Please check your connection and try again.</string>
     <string name="action_retry">Retry</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Back</string>
     <string name="cd_menu">Menu</string>
     <string name="cd_notifications">Notifications</string>
-    <string name="cd_show_password">Show password</string>
+        <string name="cd_refresh_library">Refresh library</string>
+        <string name="cd_sort_library">Sort library</string>
+        <string name="cd_show_password">Show password</string>
     <string name="cd_hide_password">Hide password</string>
 </resources>
