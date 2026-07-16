@@ -1,147 +1,123 @@
 package com.example.rockstar.repo
 
-import com.example.rockstar.model.UserModel
+import com.example.rockstar.model.User
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.tasks.await
 
-class UserRepoImpl : UserRepo {
+class UserRepoImpl(
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    database: FirebaseDatabase = FirebaseDatabase.getInstance()
+) : UserRepo {
 
-    val auth = FirebaseAuth.getInstance()
-    val database = FirebaseDatabase.getInstance()
-    val ref = database.getReference("users")
+    private val usersRef = database.getReference("users")
 
-    override fun login(
-        email: String,
-        password: String,
-        callback: (Boolean, String?) -> Unit
-    ) {
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Login success")
-            } else {
-                callback(false, "${it.exception?.message}")
-            }
-        }
-    }
+    override fun currentUserId(): String? = auth.currentUser?.uid
 
-    override fun register(
-        email: String,
-        password: String,
-        callback: (Boolean, String, String) -> Unit
-    ) {
-        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Login success", "${auth.currentUser?.uid}")
-            } else {
-                callback(false, "${it.exception?.message}", "")
-            }
-        }
-    }
+    override fun currentUserEmail(): String? = auth.currentUser?.email
 
-    override fun addUser(
-        id: String,
-        model: UserModel,
-        callback: (Boolean, String) -> Unit
-    ) {
-        //to auto generate id
-        //val id = ref.push().key. toString()
-        ref.child(id).setValue(model).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "User registered successfully")
-            } else {
-                callback(false, "${it.exception?.message}")
-            }
-        }
-    }
-    override fun forgetPassword(
-        email: String,
-        callback: (Boolean, String?) -> Unit
-    ) {
-        auth.sendPasswordResetEmail(email).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Reset link sent to $email")
-            } else {
-                callback(false, "${it.exception?.message}")
+    override suspend fun register(email: String, password: String, fullName: String): Result<User> {
+        return try {
+            val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+            val uid = authResult.user?.uid
+                ?: return Result.failure(IllegalStateException("Account created but no user id was returned"))
+
+            val now = System.currentTimeMillis()
+            val user = User(
+                uid = uid,
+                fullName = fullName,
+                email = email,
+                createdAt = now,
+                updatedAt = now
+            )
+
+            try {
+                usersRef.child(uid).setValue(user).await()
+            } catch (profileError: Exception) {
+                // Auth account exists but the profile write failed: roll back the
+                // orphaned account so the user can safely retry registration.
+                auth.currentUser?.delete()?.await()
+                return Result.failure(profileError)
             }
 
-        }
-    }
-
-    override fun editProfile(
-        id: String,
-        model: UserModel,
-        callback: (Boolean, String?) -> Unit
-    ) {
-        auth.currentUser?.updateEmail(model.email)
-        ref.child(id).updateChildren(model.toMap()).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "Profile updated successfully")
-            } else {
-                callback(false, "${it.exception?.message}")
-            }
-        }
-    }
-
-    override fun getUserById(id: String, callback: (Boolean, String, List<UserModel?>) -> Unit) {
-        ref.child(id).addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    val user = snapshot.getValue(UserModel::class.java)
-                    callback(true, "user fetched", listOf(user))
-                } else {
-                    callback(false, "User not found", emptyList())
-                }
+            try {
+                auth.currentUser
+                    ?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(fullName).build())
+                    ?.await()
+            } catch (_: Exception) {
+                // Non-fatal: the canonical profile lives in Realtime Database.
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                callback(false,error.message,emptyList())
-            }
-        })
-    }
-
-    override fun getAllUsers(callback: (Boolean, String, List<UserModel?>) -> Unit) {
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val allUsers = mutableListOf<UserModel>()
-                    for (user in snapshot.children) {
-                        val data = user.getValue(UserModel::class.java)
-                        if (data != null) {
-                            allUsers.add(data)
-                        }
-                    }
-                    callback(true, "fetched", allUsers)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                callback(false, error.message, emptyList())
-            }
-        })
-    }
-
-    override fun logout(callback: (Boolean, String) -> Unit) {
-        try {
-            auth.signOut()
-            callback(true, "Logged out successfully")
+            Result.success(user)
         } catch (e: Exception) {
-            callback(false, "${e.message}")
+            Result.failure(e)
         }
     }
 
-    override fun deleteUser(
-        id: String,
-        callback: (Boolean, String) -> Unit
-    ) {
-       ref.child(id).removeValue().addOnCompleteListener {
-           if (it.isSuccessful) {
-               callback(true, "User deleted successfully")
-           } else {
-               callback(false, "${it.exception?.message}")
-           }
-       }
+    override suspend fun login(email: String, password: String): Result<User> {
+        return try {
+            val authResult = auth.signInWithEmailAndPassword(email, password).await()
+            val uid = authResult.user?.uid
+                ?: return Result.failure(IllegalStateException("Login succeeded but no user id was returned"))
+
+            fetchUserProfile(uid).recoverCatching {
+                // Session is genuinely authenticated even if the profile record
+                // is missing or unreadable; fall back to a minimal profile.
+                User(uid = uid, email = auth.currentUser?.email ?: email)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun fetchUserProfile(uid: String): Result<User> {
+        return try {
+            val snapshot = usersRef.child(uid).get().await()
+            val user = snapshot.getValue(User::class.java)
+            if (user != null) {
+                Result.success(user)
+            } else {
+                Result.failure(NoSuchElementException("Profile not found for user"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateUserProfile(uid: String, fullName: String): Result<User> {
+        return try {
+            val now = System.currentTimeMillis()
+            val updates = mapOf(
+                "fullName" to fullName,
+                "updatedAt" to now
+            )
+            usersRef.child(uid).updateChildren(updates).await()
+
+            try {
+                auth.currentUser
+                    ?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(fullName).build())
+                    ?.await()
+            } catch (_: Exception) {
+                // Non-fatal: Realtime Database remains the source of truth.
+            }
+
+            fetchUserProfile(uid)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun logout() {
+        auth.signOut()
     }
 }

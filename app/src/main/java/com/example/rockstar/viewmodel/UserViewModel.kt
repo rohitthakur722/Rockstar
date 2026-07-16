@@ -1,65 +1,153 @@
 package com.example.rockstar.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.rockstar.model.UserModel
+import androidx.lifecycle.viewModelScope
+import com.example.rockstar.model.User
 import com.example.rockstar.repo.UserRepo
+import com.example.rockstar.util.mapAuthError
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class UserViewModel(private val repo: UserRepo) : ViewModel() {
 
-    private val _authState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+    private val _authState = MutableStateFlow(AuthUiState())
     val authState: StateFlow<AuthUiState> = _authState.asStateFlow()
 
-    fun login(email: String, password: String) {
-        _authState.value = AuthUiState.Loading
-        repo.login(email, password) { success, message ->
-            _authState.value = if (success) {
-                AuthUiState.Success(message ?: "Login successful")
-            } else {
-                AuthUiState.Error(message ?: "Login failed")
-            }
-        }
+    private val _profileState = MutableStateFlow(ProfileUiState())
+    val profileState: StateFlow<ProfileUiState> = _profileState.asStateFlow()
+
+    private val _events = Channel<AuthEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
+    init {
+        restoreSession()
     }
 
-    fun register(username: String, email: String, password: String) {
-        _authState.value = AuthUiState.Loading
-        repo.register(email, password) { success, message, uid ->
-            if (success && uid.isNotEmpty()) {
-                val newUser = UserModel(id = uid, username = username, email = email)
-                repo.addUser(uid, newUser) { addSuccess, addMessage ->
-                    _authState.value = if (addSuccess) {
-                        AuthUiState.Success("Account created successfully")
-                    } else {
-                        AuthUiState.Error(addMessage)
-                    }
+    fun restoreSession() {
+        val uid = repo.currentUserId()
+        if (uid == null) {
+            _authState.value = AuthUiState(isSessionResolved = true, isAuthenticated = false)
+            return
+        }
+
+        viewModelScope.launch {
+            repo.fetchUserProfile(uid)
+                .onSuccess { user ->
+                    _authState.value = AuthUiState(
+                        isSessionResolved = true,
+                        isAuthenticated = true,
+                        currentUser = user
+                    )
                 }
-            } else {
-                _authState.value = AuthUiState.Error(message)
-            }
+                .onFailure {
+                    // The Firebase session itself is valid even if the profile
+                    // record could not be read; fall back to a minimal profile
+                    // rather than forcing the user back through Login.
+                    _authState.value = AuthUiState(
+                        isSessionResolved = true,
+                        isAuthenticated = true,
+                        currentUser = User(
+                            uid = uid,
+                            email = repo.currentUserEmail() ?: ""
+                        )
+                    )
+                }
         }
     }
 
-    fun forgotPassword(email: String) {
-        _authState.value = AuthUiState.Loading
-        repo.forgetPassword(email) { success, message ->
-            _authState.value = if (success) {
-                AuthUiState.Success(message ?: "Reset link sent")
-            } else {
-                AuthUiState.Error(message ?: "Unable to send reset link")
-            }
+    fun login(email: String, password: String) {
+        if (_authState.value.isLoading) return
+        _authState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            repo.login(email.trim(), password)
+                .onSuccess { user ->
+                    _authState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSessionResolved = true,
+                            isAuthenticated = true,
+                            currentUser = user
+                        )
+                    }
+                    _events.send(AuthEvent.NavigateToHome)
+                }
+                .onFailure { error ->
+                    _authState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.ShowError(mapAuthError(error)))
+                }
         }
     }
 
-    fun logout(onComplete: () -> Unit) {
-        repo.logout { _, _ ->
-            _authState.value = AuthUiState.Idle
-            onComplete()
+    fun register(fullName: String, email: String, password: String) {
+        if (_authState.value.isLoading) return
+        _authState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            repo.register(email.trim(), password, fullName.trim())
+                .onSuccess { user ->
+                    _authState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSessionResolved = true,
+                            isAuthenticated = true,
+                            currentUser = user
+                        )
+                    }
+                    _events.send(AuthEvent.NavigateToHome)
+                }
+                .onFailure { error ->
+                    _authState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.ShowError(mapAuthError(error)))
+                }
         }
     }
 
-    fun resetAuthState() {
-        _authState.value = AuthUiState.Idle
+    fun sendPasswordResetEmail(email: String) {
+        if (_authState.value.isLoading) return
+        _authState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            repo.sendPasswordResetEmail(email.trim())
+                .onSuccess {
+                    _authState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.ShowMessage("Password reset email sent. Check your inbox."))
+                }
+                .onFailure { error ->
+                    _authState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.ShowError(mapAuthError(error)))
+                }
+        }
+    }
+
+    fun updateProfile(fullName: String) {
+        val uid = _authState.value.currentUser?.uid ?: return
+        if (_profileState.value.isSaving) return
+        _profileState.update { it.copy(isSaving = true) }
+
+        viewModelScope.launch {
+            repo.updateUserProfile(uid, fullName.trim())
+                .onSuccess { user ->
+                    _profileState.update { it.copy(isSaving = false) }
+                    _authState.update { it.copy(currentUser = user) }
+                    _events.send(AuthEvent.ShowMessage("Profile updated"))
+                }
+                .onFailure { error ->
+                    _profileState.update { it.copy(isSaving = false) }
+                    _events.send(AuthEvent.ShowError(mapAuthError(error)))
+                }
+        }
+    }
+
+    fun logout() {
+        repo.logout()
+        _authState.value = AuthUiState(isSessionResolved = true, isAuthenticated = false)
+        _profileState.value = ProfileUiState()
+        viewModelScope.launch { _events.send(AuthEvent.NavigateToLogin) }
     }
 }

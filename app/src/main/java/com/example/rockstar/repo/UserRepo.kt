@@ -1,24 +1,22 @@
 package com.example.rockstar.repo
 
-import com.example.rockstar.model.UserModel
+import com.example.rockstar.model.User
 
 interface UserRepo {
 
-    fun login(email: String, password: String, callback: (Boolean, String?) -> Unit)
+    fun currentUserId(): String?
 
-    fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit)
+    fun currentUserEmail(): String?
 
-    fun addUser(id: String, model: UserModel, callback: (Boolean, String) -> Unit)
+    suspend fun register(email: String, password: String, fullName: String): Result<User>
 
-    fun forgetPassword(email: String, callback: (Boolean, String?) -> Unit)
+    suspend fun login(email: String, password: String): Result<User>
 
-    fun editProfile(id: String, model: UserModel, callback: (Boolean, String?) -> Unit)
+    suspend fun fetchUserProfile(uid: String): Result<User>
 
-    fun getUserById(id: String, callback: (Boolean, String, List<UserModel?>) -> Unit)
+    suspend fun updateUserProfile(uid: String, fullName: String): Result<User>
 
-    fun getAllUsers(callback: (Boolean, String, List<UserModel?>) -> Unit)
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 
-    fun logout(callback: (Boolean, String) -> Unit)
-
-    fun deleteUser(id: String, callback: (Boolean, String) -> Unit)
+    fun logout()
 }

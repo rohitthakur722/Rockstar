@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.rockstar.R
 import com.example.rockstar.ui.theme.RockstarAccent
+import com.example.rockstar.ui.theme.RockstarError
 import com.example.rockstar.ui.theme.RockstarSurfaceElevated
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
@@ -41,12 +42,20 @@ fun RockstarTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     onImeAction: () -> Unit = {},
-    focusRequester: FocusRequester? = null
+    focusRequester: FocusRequester? = null,
+    isError: Boolean = false,
+    supportingText: String? = null,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = if (focusRequester != null) modifier.focusRequester(focusRequester) else modifier,
+        enabled = enabled,
+        isError = isError,
+        supportingText = supportingText?.let {
+            { Text(text = it, color = RockstarError) }
+        },
         placeholder = { Text(placeholder, color = RockstarTextSecondary) },
         leadingIcon = leadingIcon?.let {
             {
@@ -71,6 +80,8 @@ fun RockstarTextField(
             focusedContainerColor = RockstarSurfaceElevated,
             unfocusedIndicatorColor = Color.Transparent,
             focusedIndicatorColor = RockstarAccent,
+            errorIndicatorColor = RockstarError,
+            errorContainerColor = RockstarSurfaceElevated,
             focusedTextColor = RockstarTextPrimary,
             unfocusedTextColor = RockstarTextPrimary,
             cursorColor = RockstarAccent

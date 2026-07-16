@@ -11,27 +11,33 @@
     <string name="action_forgot_password">Forgot password?</string>
     <string name="prompt_no_account">Don\'t have an account? </string>
     <string name="action_create_one">Create one</string>
-    <string name="error_fill_email_password">Please enter email and password</string>
 
     <!-- Register -->
     <string name="register_title">Create Account</string>
     <string name="register_subtitle">Join Rockstar and enjoy music</string>
-    <string name="label_username">Username</string>
+    <string name="label_full_name">Full name</string>
     <string name="action_create_account">Create Account</string>
     <string name="prompt_have_account">Already have an account? </string>
     <string name="action_login_link">Login</string>
-    <string name="error_fill_all_fields">Please fill all fields</string>
+    <string name="placeholder_confirm_password">Confirm your password</string>
 
     <!-- Forgot password -->
     <string name="forgot_password_title">Forgot Password</string>
     <string name="forgot_password_subtitle">Enter your email address and we will send you password reset instructions.</string>
     <string name="action_send_reset_link">Send Reset Link</string>
     <string name="prompt_remember_password">Remember password? </string>
-    <string name="error_fill_email">Please enter your email</string>
+    <string name="forgot_password_sent_message">Reset link sent. Check your inbox.</string>
 
     <!-- Shared auth field labels -->
     <string name="placeholder_email">Enter your email</string>
     <string name="placeholder_password">Enter your password</string>
+
+    <!-- Auth validation -->
+    <string name="error_invalid_email">Enter a valid email address</string>
+    <string name="error_empty_password">Enter your password</string>
+    <string name="error_invalid_full_name">Enter your full name</string>
+    <string name="error_weak_password">Password must be at least 6 characters</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
 
     <!-- Bottom navigation -->
     <string name="nav_home">Home</string>
@@ -60,9 +66,16 @@
     <string name="empty_liked_message">Liked songs will appear here once playback is implemented.</string>
     <string name="empty_songs_title">Your Library Is Empty</string>
     <string name="empty_songs_message">Your song library will appear here once device scanning is implemented.</string>
-    <string name="account_title">Your Account</string>
-    <string name="empty_account_message">Profile details and editing are coming in a later phase.</string>
     <string name="action_log_out">Log Out</string>
+    <string name="action_edit_profile">Edit Profile</string>
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="logout_confirm_title">Log Out</string>
+    <string name="logout_confirm_message">Are you sure you want to log out?</string>
+    <string name="account_profile_unavailable_title">Profile Unavailable</string>
+    <string name="account_profile_unavailable_message">We could not load your profile. Please check your connection and try again.</string>
+    <string name="action_retry">Retry</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Back</string>
