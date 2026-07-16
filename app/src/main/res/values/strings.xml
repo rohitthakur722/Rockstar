@@ -163,4 +163,7 @@
         <string name="cd_open_now_playing">Open Now Playing</string>
         <string name="cd_queue">Queue</string>
         <string name="cd_clear_queue">Clear queue</string>
+            <string name="cd_close_queue">Close queue</string>
+            <string name="cd_remove_queue_item">Remove from queue</string>
+            <string name="queue_title">Queue</string>
 </resources>
