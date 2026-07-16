@@ -1,6 +1,5 @@
 package com.example.rockstar.ui.screens.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +20,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,7 +48,8 @@ import com.example.rockstar.ui.theme.RockstarAccent
 import com.example.rockstar.ui.theme.RockstarBackground
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
-import com.example.rockstar.viewmodel.AuthUiState
+import com.example.rockstar.util.Validators
+import com.example.rockstar.viewmodel.AuthEvent
 import com.example.rockstar.viewmodel.UserViewModel
 
 @Composable
@@ -59,69 +59,120 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val fillAllFieldsMessage = stringResource(R.string.error_fill_all_fields)
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    var username by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is AuthUiState.Success -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                onRegistrationSuccess()
-                viewModel.resetAuthState()
+    var fullNameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
+    val invalidNameMessage = stringResource(R.string.error_invalid_full_name)
+    val invalidEmailMessage = stringResource(R.string.error_invalid_email)
+    val weakPasswordMessage = stringResource(R.string.error_weak_password)
+    val passwordMismatchMessage = stringResource(R.string.error_password_mismatch)
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is AuthEvent.NavigateToHome -> onRegistrationSuccess()
+                is AuthEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is AuthEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                else -> Unit
             }
-            is AuthUiState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetAuthState()
-            }
-            else -> Unit
         }
     }
 
-    RegisterContent(
-        username = username,
-        onUsernameChange = { username = it },
-        email = email,
-        onEmailChange = { email = it },
-        password = password,
-        onPasswordChange = { password = it },
-        passwordVisible = passwordVisible,
-        onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
-        loading = authState is AuthUiState.Loading,
-        onCreateAccountClick = {
-            if (username.isBlank() || email.isBlank() || password.isBlank()) {
-                Toast.makeText(context, fillAllFieldsMessage, Toast.LENGTH_SHORT).show()
-            } else {
-                viewModel.register(username, email, password)
-            }
-        },
-        onLoginClick = onNavigateToLogin,
-        onBack = onBack
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        RegisterContent(
+            fullName = fullName,
+            onFullNameChange = {
+                fullName = it
+                fullNameError = null
+            },
+            email = email,
+            onEmailChange = {
+                email = it
+                emailError = null
+            },
+            password = password,
+            onPasswordChange = {
+                password = it
+                passwordError = null
+                confirmPasswordError = null
+            },
+            confirmPassword = confirmPassword,
+            onConfirmPasswordChange = {
+                confirmPassword = it
+                confirmPasswordError = null
+            },
+            passwordVisible = passwordVisible,
+            onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
+            fullNameError = fullNameError,
+            emailError = emailError,
+            passwordError = passwordError,
+            confirmPasswordError = confirmPasswordError,
+            loading = authState.isLoading,
+            onCreateAccountClick = {
+                val isNameValid = Validators.isValidFullName(fullName)
+                val isEmailValid = Validators.isValidEmail(email)
+                val isPasswordValid = Validators.isValidPassword(password)
+                val doPasswordsMatch = Validators.doPasswordsMatch(password, confirmPassword)
+
+                fullNameError = if (isNameValid) null else invalidNameMessage
+                emailError = if (isEmailValid) null else invalidEmailMessage
+                passwordError = if (isPasswordValid) null else weakPasswordMessage
+                confirmPasswordError = if (isPasswordValid && !doPasswordsMatch) {
+                    passwordMismatchMessage
+                } else {
+                    null
+                }
+
+                if (isNameValid && isEmailValid && isPasswordValid && doPasswordsMatch) {
+                    viewModel.register(fullName, email, password)
+                }
+            },
+            onLoginClick = onNavigateToLogin,
+            onBack = onBack
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable
 fun RegisterContent(
-    username: String,
-    onUsernameChange: (String) -> Unit,
+    fullName: String,
+    onFullNameChange: (String) -> Unit,
     email: String,
     onEmailChange: (String) -> Unit,
     password: String,
     onPasswordChange: (String) -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
     onPasswordVisibilityToggle: () -> Unit,
     onCreateAccountClick: () -> Unit,
     onLoginClick: () -> Unit,
     onBack: () -> Unit = {},
+    fullNameError: String? = null,
+    emailError: String? = null,
+    passwordError: String? = null,
+    confirmPasswordError: String? = null,
     loading: Boolean = false
 ) {
     val emailFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
+    val confirmPasswordFocusRequester = remember { FocusRequester() }
 
     Box(
         modifier = Modifier
@@ -161,12 +212,15 @@ fun RegisterContent(
             Spacer(modifier = Modifier.height(36.dp))
 
             RockstarTextField(
-                value = username,
-                onValueChange = onUsernameChange,
-                placeholder = stringResource(R.string.label_username),
+                value = fullName,
+                onValueChange = onFullNameChange,
+                placeholder = stringResource(R.string.label_full_name),
                 leadingIcon = Icons.Default.Person,
                 imeAction = ImeAction.Next,
                 onImeAction = { emailFocusRequester.requestFocus() },
+                isError = fullNameError != null,
+                supportingText = fullNameError,
+                enabled = !loading,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -181,6 +235,9 @@ fun RegisterContent(
                 imeAction = ImeAction.Next,
                 onImeAction = { passwordFocusRequester.requestFocus() },
                 focusRequester = emailFocusRequester,
+                isError = emailError != null,
+                supportingText = emailError,
+                enabled = !loading,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -194,9 +251,12 @@ fun RegisterContent(
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-                onImeAction = onCreateAccountClick,
+                imeAction = ImeAction.Next,
+                onImeAction = { confirmPasswordFocusRequester.requestFocus() },
                 focusRequester = passwordFocusRequester,
+                isError = passwordError != null,
+                supportingText = passwordError,
+                enabled = !loading,
                 trailingIcon = {
                     PasswordVisibilityToggle(
                         isVisible = passwordVisible,
@@ -206,11 +266,31 @@ fun RegisterContent(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            RockstarTextField(
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                placeholder = stringResource(R.string.placeholder_confirm_password),
+                leadingIcon = Icons.Default.Lock,
+                isPassword = true,
+                passwordVisible = passwordVisible,
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+                onImeAction = onCreateAccountClick,
+                focusRequester = confirmPasswordFocusRequester,
+                isError = confirmPasswordError != null,
+                supportingText = confirmPasswordError,
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
             RockstarPrimaryButton(
                 text = stringResource(R.string.action_create_account),
                 onClick = onCreateAccountClick,
+                enabled = !loading,
                 loading = loading
             )
 
@@ -229,13 +309,6 @@ fun RegisterContent(
                     modifier = Modifier.clickable(onClick = onLoginClick)
                 )
             }
-        }
-
-        if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = RockstarAccent
-            )
         }
     }
 }
