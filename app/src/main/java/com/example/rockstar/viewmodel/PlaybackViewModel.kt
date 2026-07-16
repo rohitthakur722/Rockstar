@@ -5,16 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.rockstar.model.Song
 import com.example.rockstar.playback.PlaybackController
 import com.example.rockstar.util.clampPosition
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 
 class PlaybackViewModel(private val controller: PlaybackController) : ViewModel() {
-    val uiState: StateFlow<PlaybackUiState> = controller.uiState.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = PlaybackUiState(connectionState = PlaybackConnectionState.Connecting)
-    )
+    val uiState: StateFlow<PlaybackUiState> = controller.uiState
 
     init {
         controller.connect()
