@@ -35,6 +35,7 @@ class Media3PlaybackController(context: Context) : PlaybackController {
     private var controller: MediaController? = null
     private var progressJob: Job? = null
     private var lastQueue: List<Song> = emptyList()
+    private val stateStore = PlaybackStateStore(appContext)
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -65,6 +66,7 @@ class Media3PlaybackController(context: Context) : PlaybackController {
                         controller = mediaController
                         mediaController.addListener(listener)
                         _uiState.update { it.copy(connectionState = PlaybackConnectionState.Connected) }
+                        restoreQueueIfAvailable(mediaController)
                         syncFromPlayer(mediaController)
                     }
                     .onFailure { error ->
@@ -101,6 +103,7 @@ class Media3PlaybackController(context: Context) : PlaybackController {
         mediaController.prepare()
         mediaController.play()
         _uiState.update { it.copy(queue = safeQueue, currentIndex = safeIndex, currentSong = safeQueue[safeIndex]) }
+        persist(mediaController)
         syncFromPlayer(mediaController)
     }
 
@@ -168,6 +171,7 @@ class Media3PlaybackController(context: Context) : PlaybackController {
         mediaController?.stop()
         mediaController?.clearMediaItems()
         lastQueue = emptyList()
+        stateStore.clear()
         _uiState.value = PlaybackUiState(connectionState = _uiState.value.connectionState)
         progressJob?.cancel()
     }
@@ -204,7 +208,38 @@ class Media3PlaybackController(context: Context) : PlaybackController {
                 errorMessage = if (player.playbackState == Player.STATE_IDLE) it.errorMessage else null
             )
         }
+        persist(player)
         updateProgressTicker(player.isPlaying && currentSong != null)
+    }
+
+    private fun restoreQueueIfAvailable(mediaController: MediaController) {
+        val restored = stateStore.restore() ?: return
+        val mediaItems = restored.queue.mapNotNull(Song::toMediaItemOrNull)
+        if (mediaItems.isEmpty()) {
+            stateStore.clear()
+            return
+        }
+        lastQueue = restored.queue
+        mediaController.setMediaItems(mediaItems, restored.currentIndex, restored.positionMs)
+        mediaController.shuffleModeEnabled = restored.shuffle
+        mediaController.repeatMode = when (restored.repeatMode) {
+            RockstarRepeatMode.Off -> Player.REPEAT_MODE_OFF
+            RockstarRepeatMode.All -> Player.REPEAT_MODE_ALL
+            RockstarRepeatMode.One -> Player.REPEAT_MODE_ONE
+        }
+        mediaController.prepare()
+        mediaController.pause()
+    }
+
+    private fun persist(player: Player) {
+        if (lastQueue.isEmpty()) return
+        stateStore.save(
+            queue = lastQueue,
+            currentIndex = player.currentMediaItemIndex.takeIf { it >= 0 } ?: 0,
+            positionMs = player.currentPosition,
+            shuffle = player.shuffleModeEnabled,
+            repeatMode = player.repeatMode.toRockstarRepeatMode()
+        )
     }
 
     private fun updateProgressTicker(active: Boolean) {
