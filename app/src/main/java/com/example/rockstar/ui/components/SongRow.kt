@@ -1,28 +1,41 @@
 package com.example.rockstar.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.rockstar.model.Song
+import com.example.rockstar.ui.theme.RockstarAccent
 import com.example.rockstar.ui.theme.RockstarTextPrimary
 import com.example.rockstar.ui.theme.RockstarTextSecondary
 import com.example.rockstar.util.formatDuration
 
 @Composable
-fun SongRow(song: Song, modifier: Modifier = Modifier) {
+fun SongRow(
+    song: Song,
+    modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -31,7 +44,7 @@ fun SongRow(song: Song, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.title,
-                color = RockstarTextPrimary,
+                color = if (isActive) RockstarAccent else RockstarTextPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -45,10 +58,18 @@ fun SongRow(song: Song, modifier: Modifier = Modifier) {
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = formatDuration(song.durationMs),
-            color = RockstarTextSecondary,
-            style = MaterialTheme.typography.bodySmall
-        )
+        if (isActive) {
+            Icon(
+                imageVector = Icons.Default.Equalizer,
+                contentDescription = null,
+                tint = if (isPlaying) RockstarAccent else RockstarTextSecondary
+            )
+        } else {
+            Text(
+                text = formatDuration(song.durationMs),
+                color = RockstarTextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }

@@ -149,4 +149,18 @@
         <string name="cd_sort_library">Sort library</string>
         <string name="cd_show_password">Show password</string>
     <string name="cd_hide_password">Hide password</string>
+        <string name="now_playing_title">Now Playing</string>
+        <string name="now_playing_empty_title">Nothing playing</string>
+        <string
+    name="now_playing_empty_message"
+  >Choose a song from your library to start playback.</string>
+        <string name="cd_play">Play</string>
+        <string name="cd_pause">Pause</string>
+        <string name="cd_next">Next</string>
+        <string name="cd_previous">Previous</string>
+        <string name="cd_shuffle">Shuffle</string>
+        <string name="cd_repeat">Repeat</string>
+        <string name="cd_open_now_playing">Open Now Playing</string>
+        <string name="cd_queue">Queue</string>
+        <string name="cd_clear_queue">Clear queue</string>
 </resources>

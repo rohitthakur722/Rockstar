@@ -52,6 +52,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rockstar.R
+import com.example.rockstar.model.Song
 import com.example.rockstar.navigation.RockstarDestination
 import com.example.rockstar.ui.components.AlbumCard
 import com.example.rockstar.ui.components.ArtistRow
@@ -69,12 +70,18 @@ import com.example.rockstar.viewmodel.AudioPermissionState
 import com.example.rockstar.viewmodel.LibrarySection
 import com.example.rockstar.viewmodel.MusicLibraryUiState
 import com.example.rockstar.viewmodel.MusicLibraryViewModel
+import com.example.rockstar.viewmodel.PlaybackUiState
 
 @Composable
 fun AllSongsScreen(
     currentRoute: String,
     onTabSelected: (RockstarDestination) -> Unit,
-    viewModel: MusicLibraryViewModel
+    viewModel: MusicLibraryViewModel,
+    playbackState: PlaybackUiState,
+    onSongSelected: (Song, List<Song>) -> Unit,
+    onMiniPlayerClick: () -> Unit,
+    onMiniPlayerPlayPause: () -> Unit,
+    onMiniPlayerNext: () -> Unit
 ) {
     val context = LocalContext.current
     val activity = context.findActivity()
@@ -119,7 +126,11 @@ fun AllSongsScreen(
         onTabSelected = onTabSelected,
         trailingIcon = Icons.Default.Refresh,
         trailingContentDescription = stringResource(R.string.cd_refresh_library),
-        onTrailingClick = viewModel::refreshLibrary
+        onTrailingClick = viewModel::refreshLibrary,
+        playbackState = playbackState,
+        onMiniPlayerClick = onMiniPlayerClick,
+        onMiniPlayerPlayPause = onMiniPlayerPlayPause,
+        onMiniPlayerNext = onMiniPlayerNext
     ) { padding ->
         LibraryContent(
             uiState = uiState,
@@ -130,7 +141,9 @@ fun AllSongsScreen(
             onSectionSelected = viewModel::selectSection,
             onSortOrderSelected = viewModel::updateSortOrder,
             onToggleSortDirection = viewModel::toggleSortDirection,
-            onRefresh = viewModel::refreshLibrary
+            onRefresh = viewModel::refreshLibrary,
+            playbackState = playbackState,
+            onSongSelected = onSongSelected
         )
     }
 }
@@ -145,7 +158,9 @@ fun LibraryContent(
     onSectionSelected: (LibrarySection) -> Unit = {},
     onSortOrderSelected: (com.example.rockstar.viewmodel.LibrarySortOrder) -> Unit = {},
     onToggleSortDirection: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    playbackState: PlaybackUiState = PlaybackUiState(),
+    onSongSelected: (Song, List<Song>) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
@@ -171,7 +186,9 @@ fun LibraryContent(
                 onSectionSelected = onSectionSelected,
                 onSortOrderSelected = onSortOrderSelected,
                 onToggleSortDirection = onToggleSortDirection,
-                onRefresh = onRefresh
+                onRefresh = onRefresh,
+                playbackState = playbackState,
+                onSongSelected = onSongSelected
             )
         }
     }
@@ -184,7 +201,9 @@ private fun LoadedLibraryState(
     onSectionSelected: (LibrarySection) -> Unit,
     onSortOrderSelected: (com.example.rockstar.viewmodel.LibrarySortOrder) -> Unit,
     onToggleSortDirection: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    playbackState: PlaybackUiState,
+    onSongSelected: (Song, List<Song>) -> Unit
 ) {
     Spacer(modifier = Modifier.height(16.dp))
     MusicSearchBar(query = uiState.searchQuery, onQueryChange = onSearchQueryChange)
@@ -244,7 +263,15 @@ private fun LoadedLibraryState(
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         when (uiState.selectedLibrarySection) {
-            LibrarySection.Songs -> items(uiState.displayedSongs, key = { it.id }) { song -> SongRow(song = song) }
+            LibrarySection.Songs -> items(uiState.displayedSongs, key = { it.id }) { song ->
+                SongRow(
+                    song = song,
+                    isActive = playbackState.currentMediaId == song.id.toString(),
+                    isPlaying = playbackState.isPlaying,
+                    onClick = { onSongSelected(song, uiState.displayedSongs) }
+                )
+            }
+
             LibrarySection.Albums -> items(uiState.albums, key = { it.key }) { album -> AlbumCard(album = album) }
             LibrarySection.Artists -> items(uiState.artists, key = { it.key }) { artist -> ArtistRow(artist = artist) }
         }

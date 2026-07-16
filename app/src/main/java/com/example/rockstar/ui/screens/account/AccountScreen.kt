@@ -25,6 +25,7 @@ import com.example.rockstar.ui.components.ProfileHeader
 import com.example.rockstar.ui.components.RockstarAppScaffold
 import com.example.rockstar.ui.components.RockstarPrimaryButton
 import com.example.rockstar.viewmodel.AuthEvent
+import com.example.rockstar.viewmodel.PlaybackUiState
 import com.example.rockstar.viewmodel.UserViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -34,6 +35,11 @@ fun AccountScreen(
     currentRoute: String,
     onTabSelected: (RockstarDestination) -> Unit,
     viewModel: UserViewModel,
+    playbackState: PlaybackUiState,
+    onMiniPlayerClick: () -> Unit,
+    onMiniPlayerPlayPause: () -> Unit,
+    onMiniPlayerNext: () -> Unit,
+    onLogoutConfirmed: () -> Unit,
     onLoggedOut: () -> Unit
 ) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
@@ -53,6 +59,7 @@ fun AccountScreen(
                     editDialogError = null
                     snackbarHostState.showSnackbar(event.message)
                 }
+
                 is AuthEvent.ShowError -> {
                     if (showEditDialog) {
                         editDialogError = event.message
@@ -60,6 +67,7 @@ fun AccountScreen(
                         snackbarHostState.showSnackbar(event.message)
                     }
                 }
+
                 else -> Unit
             }
         }
@@ -70,7 +78,11 @@ fun AccountScreen(
     RockstarAppScaffold(
         title = stringResource(R.string.nav_account),
         currentRoute = currentRoute,
-        onTabSelected = onTabSelected
+        onTabSelected = onTabSelected,
+        playbackState = playbackState,
+        onMiniPlayerClick = onMiniPlayerClick,
+        onMiniPlayerPlayPause = onMiniPlayerPlayPause,
+        onMiniPlayerNext = onMiniPlayerNext
     ) { padding ->
         Box(
             modifier = Modifier
@@ -128,6 +140,7 @@ fun AccountScreen(
             dismissLabel = stringResource(R.string.action_cancel),
             onConfirm = {
                 showLogoutConfirm = false
+                onLogoutConfirmed()
                 viewModel.logout()
             },
             onDismiss = { showLogoutConfirm = false }

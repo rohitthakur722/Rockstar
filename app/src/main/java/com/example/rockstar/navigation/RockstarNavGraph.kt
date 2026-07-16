@@ -1,12 +1,15 @@
 package com.example.rockstar.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.rockstar.playback.Media3PlaybackController
 import com.example.rockstar.repo.MediaStoreMusicRepository
 import com.example.rockstar.repo.UserRepoImpl
 import com.example.rockstar.ui.screens.account.AccountScreen
@@ -17,8 +20,11 @@ import com.example.rockstar.ui.screens.home.HomeScreen
 import com.example.rockstar.ui.screens.liked.LikedScreen
 import com.example.rockstar.ui.screens.playlists.PlaylistsScreen
 import com.example.rockstar.ui.screens.songs.AllSongsScreen
+import com.example.rockstar.ui.screens.player.NowPlayingScreen
 import com.example.rockstar.ui.screens.splash.SplashScreen
 import com.example.rockstar.viewmodel.MusicLibraryViewModel
+import com.example.rockstar.viewmodel.PlaybackViewModel
+import com.example.rockstar.viewmodel.PlaybackViewModelFactory
 import com.example.rockstar.viewmodel.MusicLibraryViewModelFactory
 import com.example.rockstar.viewmodel.UserViewModel
 import com.example.rockstar.viewmodel.UserViewModelFactory
@@ -32,6 +38,10 @@ fun RockstarNavGraph(
     val musicLibraryViewModel: MusicLibraryViewModel = viewModel(
         factory = MusicLibraryViewModelFactory(MediaStoreMusicRepository(context.contentResolver))
     )
+    val playbackViewModel: PlaybackViewModel = viewModel(
+        factory = PlaybackViewModelFactory(Media3PlaybackController(context))
+    )
+    val playbackState by playbackViewModel.uiState.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -90,21 +100,34 @@ fun RockstarNavGraph(
             HomeScreen(
                 currentRoute = RockstarDestination.Home.route,
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
-                viewModel = musicLibraryViewModel
+                viewModel = musicLibraryViewModel,
+                playbackState = playbackState,
+                onSongSelected = playbackViewModel::playSong,
+                onMiniPlayerClick = { navController.navigateToNowPlaying() },
+                onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
+                onMiniPlayerNext = playbackViewModel::next
             )
         }
 
         composable(RockstarDestination.Playlists.route) {
             PlaylistsScreen(
                 currentRoute = RockstarDestination.Playlists.route,
-                onTabSelected = { destination -> navController.navigateToTab(destination) }
+                onTabSelected = { destination -> navController.navigateToTab(destination) },
+                playbackState = playbackState,
+                onMiniPlayerClick = { navController.navigateToNowPlaying() },
+                onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
+                onMiniPlayerNext = playbackViewModel::next
             )
         }
 
         composable(RockstarDestination.Liked.route) {
             LikedScreen(
                 currentRoute = RockstarDestination.Liked.route,
-                onTabSelected = { destination -> navController.navigateToTab(destination) }
+                onTabSelected = { destination -> navController.navigateToTab(destination) },
+                playbackState = playbackState,
+                onMiniPlayerClick = { navController.navigateToNowPlaying() },
+                onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
+                onMiniPlayerNext = playbackViewModel::next
             )
         }
 
@@ -112,7 +135,28 @@ fun RockstarNavGraph(
             AllSongsScreen(
                 currentRoute = RockstarDestination.AllSongs.route,
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
-                viewModel = musicLibraryViewModel
+                viewModel = musicLibraryViewModel,
+                playbackState = playbackState,
+                onSongSelected = playbackViewModel::playSong,
+                onMiniPlayerClick = { navController.navigateToNowPlaying() },
+                onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
+                onMiniPlayerNext = playbackViewModel::next
+            )
+        }
+
+        composable(RockstarDestination.NowPlaying.route) {
+            NowPlayingScreen(
+                playbackState = playbackState,
+                onBack = { navController.popBackStack() },
+                onTogglePlayPause = playbackViewModel::togglePlayPause,
+                onPrevious = playbackViewModel::previous,
+                onNext = playbackViewModel::next,
+                onSeek = playbackViewModel::seekTo,
+                onShuffle = { playbackViewModel.setShuffleEnabled(!playbackState.shuffleEnabled) },
+                onRepeat = playbackViewModel::cycleRepeatMode,
+                onSkipToQueueItem = playbackViewModel::skipToQueueItem,
+                onRemoveQueueItem = playbackViewModel::removeQueueItem,
+                onClearQueue = playbackViewModel::clearQueue
             )
         }
 
@@ -121,6 +165,11 @@ fun RockstarNavGraph(
                 currentRoute = RockstarDestination.Account.route,
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
                 viewModel = userViewModel,
+                playbackState = playbackState,
+                onMiniPlayerClick = { navController.navigateToNowPlaying() },
+                onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
+                onMiniPlayerNext = playbackViewModel::next,
+                onLogoutConfirmed = playbackViewModel::clearQueue,
                 onLoggedOut = {
                     navController.navigate(RockstarDestination.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -135,6 +184,12 @@ fun RockstarNavGraph(
  * Standard bottom-navigation pattern: avoids stacking a new back-stack entry
  * per tab switch while still restoring each tab's own scroll/UI state.
  */
+private fun NavHostController.navigateToNowPlaying() {
+    navigate(RockstarDestination.NowPlaying.route) {
+        launchSingleTop = true
+    }
+}
+
 private fun NavHostController.navigateToTab(destination: RockstarDestination) {
     navigate(destination.route) {
         popUpTo(RockstarDestination.Home.route) { saveState = true }

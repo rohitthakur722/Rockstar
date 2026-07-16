@@ -40,6 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rockstar.R
+import com.example.rockstar.model.Song
 import com.example.rockstar.navigation.RockstarDestination
 import com.example.rockstar.ui.components.AlbumCard
 import com.example.rockstar.ui.components.EmptyState
@@ -52,12 +53,18 @@ import com.example.rockstar.ui.components.SongRow
 import com.example.rockstar.ui.components.WelcomeHeader
 import com.example.rockstar.viewmodel.AudioPermissionState
 import com.example.rockstar.viewmodel.MusicLibraryViewModel
+import com.example.rockstar.viewmodel.PlaybackUiState
 
 @Composable
 fun HomeScreen(
     currentRoute: String,
     onTabSelected: (RockstarDestination) -> Unit,
-    viewModel: MusicLibraryViewModel
+    viewModel: MusicLibraryViewModel,
+    playbackState: PlaybackUiState,
+    onSongSelected: (Song, List<Song>) -> Unit,
+    onMiniPlayerClick: () -> Unit,
+    onMiniPlayerPlayPause: () -> Unit,
+    onMiniPlayerNext: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -106,7 +113,11 @@ fun HomeScreen(
         onTabSelected = onTabSelected,
         showBrandMark = true,
         trailingIcon = Icons.Outlined.Notifications,
-        trailingContentDescription = stringResource(R.string.cd_notifications)
+        trailingContentDescription = stringResource(R.string.cd_notifications),
+        playbackState = playbackState,
+        onMiniPlayerClick = onMiniPlayerClick,
+        onMiniPlayerPlayPause = onMiniPlayerPlayPause,
+        onMiniPlayerNext = onMiniPlayerNext
     ) { padding ->
         Column(
             modifier = Modifier
@@ -167,7 +178,15 @@ fun HomeScreen(
                         )
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            uiState.displayedSongs.take(6).forEach { song -> SongRow(song = song) }
+                            val searchQueue = uiState.displayedSongs.take(6)
+                            searchQueue.forEach { song ->
+                                SongRow(
+                                    song = song,
+                                    isActive = playbackState.currentMediaId == song.id.toString(),
+                                    isPlaying = playbackState.isPlaying,
+                                    onClick = { onSongSelected(song, searchQueue) }
+                                )
+                            }
                         }
                     }
                 }
@@ -184,7 +203,14 @@ fun HomeScreen(
                     SectionHeader(title = stringResource(R.string.section_recently_added), showSeeAll = false)
                     Spacer(modifier = Modifier.height(16.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        recentlyAdded.forEach { song -> SongRow(song = song) }
+                        recentlyAdded.forEach { song ->
+                            SongRow(
+                                song = song,
+                                isActive = playbackState.currentMediaId == song.id.toString(),
+                                isPlaying = playbackState.isPlaying,
+                                onClick = { onSongSelected(song, recentlyAdded) }
+                            )
+                        }
                     }
                 }
             }

@@ -10,16 +10,25 @@ import com.example.rockstar.R
 import com.example.rockstar.navigation.RockstarDestination
 import com.example.rockstar.ui.components.EmptyState
 import com.example.rockstar.ui.components.RockstarAppScaffold
+import com.example.rockstar.viewmodel.PlaybackUiState
 
 @Composable
 fun PlaylistsScreen(
     currentRoute: String,
-    onTabSelected: (RockstarDestination) -> Unit
+    onTabSelected: (RockstarDestination) -> Unit,
+    playbackState: PlaybackUiState,
+    onMiniPlayerClick: () -> Unit,
+    onMiniPlayerPlayPause: () -> Unit,
+    onMiniPlayerNext: () -> Unit
 ) {
     RockstarAppScaffold(
         title = stringResource(R.string.nav_playlists),
         currentRoute = currentRoute,
-        onTabSelected = onTabSelected
+        onTabSelected = onTabSelected,
+        playbackState = playbackState,
+        onMiniPlayerClick = onMiniPlayerClick,
+        onMiniPlayerPlayPause = onMiniPlayerPlayPause,
+        onMiniPlayerNext = onMiniPlayerNext
     ) { padding ->
         EmptyState(
             icon = Icons.Default.LibraryMusic,

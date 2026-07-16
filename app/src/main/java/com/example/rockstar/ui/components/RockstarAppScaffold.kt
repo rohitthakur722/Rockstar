@@ -1,5 +1,6 @@
 package com.example.rockstar.ui.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -7,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.rockstar.navigation.RockstarDestination
 import com.example.rockstar.ui.theme.RockstarBackground
+import com.example.rockstar.viewmodel.PlaybackUiState
 
 /**
  * Shared app shell for the five bottom-navigation tab destinations.
@@ -21,6 +23,10 @@ fun RockstarAppScaffold(
     trailingIcon: ImageVector? = null,
     trailingContentDescription: String? = null,
     onTrailingClick: () -> Unit = {},
+    playbackState: PlaybackUiState? = null,
+    onMiniPlayerClick: () -> Unit = {},
+    onMiniPlayerPlayPause: () -> Unit = {},
+    onMiniPlayerNext: () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
@@ -35,7 +41,19 @@ fun RockstarAppScaffold(
                 onTrailingClick = onTrailingClick
             )
         },
-        bottomBar = { RockstarBottomBar(currentRoute = currentRoute, onTabSelected = onTabSelected) },
+        bottomBar = {
+            Column {
+                if (playbackState?.hasActiveMedia == true) {
+                    MiniPlayer(
+                        state = playbackState,
+                        onTogglePlayPause = onMiniPlayerPlayPause,
+                        onNext = onMiniPlayerNext,
+                        onOpenNowPlaying = onMiniPlayerClick
+                    )
+                }
+                RockstarBottomBar(currentRoute = currentRoute, onTabSelected = onTabSelected)
+            }
+        },
         content = content
     )
 }
