@@ -123,13 +123,12 @@ class UserRepoImpl : UserRepo {
         })
     }
 
-    override fun logout(callback: (Boolean) -> Unit) {
+    override fun logout(callback: (Boolean, String) -> Unit) {
         try {
             auth.signOut()
-            callback(true)
+            callback(true, "Logged out successfully")
         } catch (e: Exception) {
-            callback(false)
-
+            callback(false, "${e.message}")
         }
     }
 
