@@ -4,13 +4,11 @@ import com.example.rockstar.model.UserModel
 
 interface UserRepo {
 
-    // {
-    //
     fun login(email: String, password: String, callback: (Boolean, String?) -> Unit)
 
     fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit)
 
-    fun addUser (id: String, model: UserModel, callback: (Boolean, String) -> Unit)
+    fun addUser(id: String, model: UserModel, callback: (Boolean, String) -> Unit)
 
     fun forgetPassword(email: String, callback: (Boolean, String?) -> Unit)
 
