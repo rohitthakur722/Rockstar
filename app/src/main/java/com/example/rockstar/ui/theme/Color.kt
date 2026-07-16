@@ -2,10 +2,13 @@ package com.example.rockstar.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Rockstar brand tokens: near-black surfaces with a warm tan accent.
+val RockstarBackground = Color(0xFF0A0A0C)
+val RockstarSurface = Color(0xFF141416)
+val RockstarSurfaceElevated = Color(0xFF1C1C1E)
+val RockstarAccent = Color(0xFFD9B08C)
+val RockstarOnAccent = Color(0xFF000000)
+val RockstarTextPrimary = Color(0xFFFFFFFF)
+val RockstarTextSecondary = Color(0xFF9E9E9E)
+val RockstarOutline = Color(0xFF2C2C2E)
+val RockstarError = Color(0xFFE05252)
