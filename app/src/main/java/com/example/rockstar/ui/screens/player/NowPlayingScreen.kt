@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -53,6 +55,9 @@ fun NowPlayingScreen(
     onSeek: (Long) -> Unit,
     onShuffle: () -> Unit,
     onRepeat: () -> Unit,
+    isCurrentSongLiked: Boolean = false,
+    isLikeEnabled: Boolean = true,
+    onToggleLiked: () -> Unit = {},
     onSkipToQueueItem: (Int) -> Unit,
     onRemoveQueueItem: (Int) -> Unit,
     onClearQueue: () -> Unit
@@ -69,6 +74,18 @@ fun NowPlayingScreen(
                     }
                 },
                 actions = {
+                    if (playbackState.currentSong != null) {
+                        IconButton(onClick = onToggleLiked, enabled = isLikeEnabled) {
+                            Icon(
+                                imageVector = if (isCurrentSongLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (isCurrentSongLiked) {
+                                    stringResource(R.string.cd_unlike_song, playbackState.currentSong.title)
+                                } else {
+                                    stringResource(R.string.cd_like_song, playbackState.currentSong.title)
+                                }
+                            )
+                        }
+                    }
                     IconButton(onClick = { showQueue = true }, enabled = playbackState.queue.isNotEmpty()) {
                         Icon(
                             Icons.AutoMirrored.Filled.QueueMusic,

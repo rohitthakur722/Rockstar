@@ -78,6 +78,9 @@ fun AllSongsScreen(
     onTabSelected: (RockstarDestination) -> Unit,
     viewModel: MusicLibraryViewModel,
     playbackState: PlaybackUiState,
+    likedSongIds: Set<Long> = emptySet(),
+    likeActionEnabled: (Song) -> Boolean = { true },
+    onToggleLiked: (Song) -> Unit = {},
     onSongSelected: (Song, List<Song>) -> Unit,
     onMiniPlayerClick: () -> Unit,
     onMiniPlayerPlayPause: () -> Unit,
@@ -143,6 +146,9 @@ fun AllSongsScreen(
             onToggleSortDirection = viewModel::toggleSortDirection,
             onRefresh = viewModel::refreshLibrary,
             playbackState = playbackState,
+            likedSongIds = likedSongIds,
+            likeActionEnabled = likeActionEnabled,
+            onToggleLiked = onToggleLiked,
             onSongSelected = onSongSelected
         )
     }
@@ -160,6 +166,9 @@ fun LibraryContent(
     onToggleSortDirection: () -> Unit = {},
     onRefresh: () -> Unit = {},
     playbackState: PlaybackUiState = PlaybackUiState(),
+    likedSongIds: Set<Long> = emptySet(),
+    likeActionEnabled: (Song) -> Boolean = { true },
+    onToggleLiked: (Song) -> Unit = {},
     onSongSelected: (Song, List<Song>) -> Unit = { _, _ -> }
 ) {
     Column(
@@ -188,6 +197,9 @@ fun LibraryContent(
                 onToggleSortDirection = onToggleSortDirection,
                 onRefresh = onRefresh,
                 playbackState = playbackState,
+                likedSongIds = likedSongIds,
+                likeActionEnabled = likeActionEnabled,
+                onToggleLiked = onToggleLiked,
                 onSongSelected = onSongSelected
             )
         }
@@ -203,6 +215,9 @@ private fun LoadedLibraryState(
     onToggleSortDirection: () -> Unit,
     onRefresh: () -> Unit,
     playbackState: PlaybackUiState,
+    likedSongIds: Set<Long>,
+    likeActionEnabled: (Song) -> Boolean,
+    onToggleLiked: (Song) -> Unit,
     onSongSelected: (Song, List<Song>) -> Unit
 ) {
     Spacer(modifier = Modifier.height(16.dp))
@@ -268,7 +283,10 @@ private fun LoadedLibraryState(
                     song = song,
                     isActive = playbackState.currentMediaId == song.id.toString(),
                     isPlaying = playbackState.isPlaying,
-                    onClick = { onSongSelected(song, uiState.displayedSongs) }
+                    isLiked = likedSongIds.contains(song.id),
+                    isLikeEnabled = likeActionEnabled(song),
+                    onClick = { onSongSelected(song, uiState.displayedSongs) },
+                    onLikeClick = { onToggleLiked(song) }
                 )
             }
 

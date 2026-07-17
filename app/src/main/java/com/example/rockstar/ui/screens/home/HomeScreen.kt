@@ -61,6 +61,9 @@ fun HomeScreen(
     onTabSelected: (RockstarDestination) -> Unit,
     viewModel: MusicLibraryViewModel,
     playbackState: PlaybackUiState,
+    likedSongIds: Set<Long> = emptySet(),
+    likeActionEnabled: (Song) -> Boolean = { true },
+    onToggleLiked: (Song) -> Unit = {},
     onSongSelected: (Song, List<Song>) -> Unit,
     onMiniPlayerClick: () -> Unit,
     onMiniPlayerPlayPause: () -> Unit,
@@ -184,7 +187,10 @@ fun HomeScreen(
                                     song = song,
                                     isActive = playbackState.currentMediaId == song.id.toString(),
                                     isPlaying = playbackState.isPlaying,
-                                    onClick = { onSongSelected(song, searchQueue) }
+                                    isLiked = likedSongIds.contains(song.id),
+                                    isLikeEnabled = likeActionEnabled(song),
+                                    onClick = { onSongSelected(song, searchQueue) },
+                                    onLikeClick = { onToggleLiked(song) }
                                 )
                             }
                         }
@@ -208,7 +214,10 @@ fun HomeScreen(
                                 song = song,
                                 isActive = playbackState.currentMediaId == song.id.toString(),
                                 isPlaying = playbackState.isPlaying,
-                                onClick = { onSongSelected(song, recentlyAdded) }
+                                isLiked = likedSongIds.contains(song.id),
+                                isLikeEnabled = likeActionEnabled(song),
+                                onClick = { onSongSelected(song, recentlyAdded) },
+                                onLikeClick = { onToggleLiked(song) }
                             )
                         }
                     }

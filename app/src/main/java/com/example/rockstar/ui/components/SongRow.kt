@@ -9,13 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
+import com.example.rockstar.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.rockstar.model.Song
@@ -30,7 +35,10 @@ fun SongRow(
     modifier: Modifier = Modifier,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    onClick: (() -> Unit)? = null
+    isLiked: Boolean = false,
+    isLikeEnabled: Boolean = true,
+    onClick: (() -> Unit)? = null,
+    onLikeClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier
@@ -58,6 +66,22 @@ fun SongRow(
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
+        if (onLikeClick != null) {
+            IconButton(
+                onClick = onLikeClick,
+                enabled = isLikeEnabled
+            ) {
+                Icon(
+                    imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = if (isLiked) {
+                        stringResource(R.string.cd_unlike_song, song.title)
+                    } else {
+                        stringResource(R.string.cd_like_song, song.title)
+                    },
+                    tint = if (isLiked) RockstarAccent else RockstarTextSecondary
+                )
+            }
+        }
         if (isActive) {
             Icon(
                 imageVector = Icons.Default.Equalizer,

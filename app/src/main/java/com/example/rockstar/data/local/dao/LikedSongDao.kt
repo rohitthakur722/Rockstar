@@ -19,6 +19,9 @@ interface LikedSongDao {
     @Query("SELECT EXISTS(SELECT 1 FROM liked_songs WHERE ownerUid = :ownerUid AND songId = :songId)")
     fun observeIsLiked(ownerUid: String, songId: Long): Flow<Boolean>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM liked_songs WHERE ownerUid = :ownerUid AND songId = :songId)")
+    suspend fun isLiked(ownerUid: String, songId: Long): Boolean
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun like(entity: LikedSongEntity)
 

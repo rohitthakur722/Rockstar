@@ -9,8 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.rockstar.RockstarApplication
 import com.example.rockstar.playback.Media3PlaybackController
-import com.example.rockstar.repo.MediaStoreMusicRepository
 import com.example.rockstar.repo.UserRepoImpl
 import com.example.rockstar.ui.screens.account.AccountScreen
 import com.example.rockstar.ui.screens.auth.ForgotPasswordScreen
@@ -26,6 +26,8 @@ import com.example.rockstar.viewmodel.MusicLibraryViewModel
 import com.example.rockstar.viewmodel.PlaybackViewModel
 import com.example.rockstar.viewmodel.PlaybackViewModelFactory
 import com.example.rockstar.viewmodel.MusicLibraryViewModelFactory
+import com.example.rockstar.viewmodel.PersonalLibraryViewModel
+import com.example.rockstar.viewmodel.PersonalLibraryViewModelFactory
 import com.example.rockstar.viewmodel.UserViewModel
 import com.example.rockstar.viewmodel.UserViewModelFactory
 
@@ -34,14 +36,24 @@ fun RockstarNavGraph(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current.applicationContext
+    val container = (context as RockstarApplication).container
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(UserRepoImpl()))
     val musicLibraryViewModel: MusicLibraryViewModel = viewModel(
-        factory = MusicLibraryViewModelFactory(MediaStoreMusicRepository(context.contentResolver))
+        factory = MusicLibraryViewModelFactory(container.musicRepository)
     )
     val playbackViewModel: PlaybackViewModel = viewModel(
         factory = PlaybackViewModelFactory(Media3PlaybackController(context))
     )
+    val personalLibraryViewModel: PersonalLibraryViewModel = viewModel(
+        factory = PersonalLibraryViewModelFactory(container.personalLibraryRepository)
+    )
     val playbackState by playbackViewModel.uiState.collectAsStateWithLifecycle()
+    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+    val personalLibraryState by personalLibraryViewModel.uiState.collectAsStateWithLifecycle()
+
+    androidx.compose.runtime.LaunchedEffect(authState.currentUser?.uid) {
+        personalLibraryViewModel.setOwnerUid(authState.currentUser?.uid)
+    }
 
     NavHost(
         navController = navController,
@@ -102,6 +114,9 @@ fun RockstarNavGraph(
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
                 viewModel = musicLibraryViewModel,
                 playbackState = playbackState,
+                likedSongIds = personalLibraryState.likedSongIds,
+                likeActionEnabled = { song -> personalLibraryState.activeSongId != song.id && personalLibraryState.isAuthenticated },
+                onToggleLiked = personalLibraryViewModel::toggleLiked,
                 onSongSelected = playbackViewModel::playSong,
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },
                 onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
@@ -124,7 +139,9 @@ fun RockstarNavGraph(
             LikedScreen(
                 currentRoute = RockstarDestination.Liked.route,
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
+                viewModel = personalLibraryViewModel,
                 playbackState = playbackState,
+                onSongSelected = playbackViewModel::playSong,
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },
                 onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
                 onMiniPlayerNext = playbackViewModel::next
@@ -137,6 +154,9 @@ fun RockstarNavGraph(
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
                 viewModel = musicLibraryViewModel,
                 playbackState = playbackState,
+                likedSongIds = personalLibraryState.likedSongIds,
+                likeActionEnabled = { song -> personalLibraryState.activeSongId != song.id && personalLibraryState.isAuthenticated },
+                onToggleLiked = personalLibraryViewModel::toggleLiked,
                 onSongSelected = playbackViewModel::playSong,
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },
                 onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
@@ -154,6 +174,9 @@ fun RockstarNavGraph(
                 onSeek = playbackViewModel::seekTo,
                 onShuffle = { playbackViewModel.setShuffleEnabled(!playbackState.shuffleEnabled) },
                 onRepeat = playbackViewModel::cycleRepeatMode,
+                isCurrentSongLiked = playbackState.currentSong?.id?.let(personalLibraryState.likedSongIds::contains) == true,
+                isLikeEnabled = playbackState.currentSong?.let { personalLibraryState.activeSongId != it.id && personalLibraryState.isAuthenticated } == true,
+                onToggleLiked = { playbackState.currentSong?.let(personalLibraryViewModel::toggleLiked) },
                 onSkipToQueueItem = playbackViewModel::skipToQueueItem,
                 onRemoveQueueItem = playbackViewModel::removeQueueItem,
                 onClearQueue = playbackViewModel::clearQueue

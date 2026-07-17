@@ -38,7 +38,14 @@ class PersonalLibraryRepositoryImpl(
         ) else likedSongDao.unlike(ownerUid, song.id)
     }
 
-    override suspend fun toggleLiked(ownerUid: String, song: Song): Result<Unit> = setLiked(ownerUid, song, true)
+    override suspend fun toggleLiked(ownerUid: String, song: Song): Result<Unit> = write(ownerUid) {
+        savedSongDao.upsert(SavedSongEntity.fromSong(song))
+        if (likedSongDao.isLiked(ownerUid, song.id)) {
+            likedSongDao.unlike(ownerUid, song.id)
+        } else {
+            likedSongDao.like(LikedSongEntity(ownerUid, song.id, System.currentTimeMillis()))
+        }
+    }
 
     override fun observePlaylists(ownerUid: String): Flow<List<PlaylistEntity>> = playlistDao.observePlaylists(ownerUid)
     override fun observePlaylistSongs(ownerUid: String, playlistId: Long): Flow<List<Song>> =

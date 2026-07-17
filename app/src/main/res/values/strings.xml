@@ -77,10 +77,16 @@
     <string
     name="empty_playlists_message"
   >Playlist creation is coming in a later phase.</string>
-    <string name="empty_liked_title">No Liked Songs Yet</string>
+    <string name="empty_liked_title">No liked songs yet</string>
     <string
     name="empty_liked_message"
-  >Liked songs will appear here once playback is implemented.</string>
+  >Tap the heart beside songs you love and they will appear here.</string>
+    <string
+    name="liked_unauthenticated_title"
+  >Sign in to use Liked Songs</string>
+    <string
+    name="liked_unauthenticated_message"
+  >Your liked songs are saved separately for each Rockstar account.</string>
     <string name="empty_songs_title">Your Library Is Empty</string>
         <string
     name="empty_songs_message"
@@ -146,6 +152,8 @@
     <string name="cd_menu">Menu</string>
     <string name="cd_notifications">Notifications</string>
         <string name="cd_refresh_library">Refresh library</string>
+        <string name="cd_like_song">Like %1$s</string>
+        <string name="cd_unlike_song">Unlike %1$s</string>
         <string name="cd_sort_library">Sort library</string>
         <string name="cd_show_password">Show password</string>
     <string name="cd_hide_password">Hide password</string>
