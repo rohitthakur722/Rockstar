@@ -23,6 +23,7 @@ sealed class RockstarDestination(val route: String) {
     data object Liked : RockstarDestination("liked")
     data object AllSongs : RockstarDestination("all_songs")
     data object Account : RockstarDestination("account")
+    data object Settings : RockstarDestination("settings")
     data object NowPlaying : RockstarDestination("now_playing")
 }
 

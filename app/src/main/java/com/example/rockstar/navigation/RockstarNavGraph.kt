@@ -24,6 +24,7 @@ import com.example.rockstar.ui.screens.playlists.PlaylistDetailScreen
 import com.example.rockstar.ui.screens.playlists.PlaylistsScreen
 import com.example.rockstar.ui.screens.songs.AllSongsScreen
 import com.example.rockstar.ui.screens.player.NowPlayingScreen
+import com.example.rockstar.ui.screens.settings.SettingsScreen
 import com.example.rockstar.ui.screens.splash.SplashScreen
 import com.example.rockstar.viewmodel.MusicLibraryViewModel
 import com.example.rockstar.viewmodel.PlaybackViewModel
@@ -31,6 +32,8 @@ import com.example.rockstar.viewmodel.PlaybackViewModelFactory
 import com.example.rockstar.viewmodel.MusicLibraryViewModelFactory
 import com.example.rockstar.viewmodel.PersonalLibraryViewModel
 import com.example.rockstar.viewmodel.PersonalLibraryViewModelFactory
+import com.example.rockstar.viewmodel.SettingsViewModel
+import com.example.rockstar.viewmodel.SettingsViewModelFactory
 import com.example.rockstar.viewmodel.UserViewModel
 import com.example.rockstar.viewmodel.UserViewModelFactory
 
@@ -49,6 +52,9 @@ fun RockstarNavGraph(
     )
     val personalLibraryViewModel: PersonalLibraryViewModel = viewModel(
         factory = PersonalLibraryViewModelFactory(container.personalLibraryRepository)
+    )
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(container.preferencesRepository)
     )
     val playbackState by playbackViewModel.uiState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
@@ -230,6 +236,14 @@ fun RockstarNavGraph(
             )
         }
 
+        composable(RockstarDestination.Settings.route) {
+            SettingsScreen(
+                settingsViewModel = settingsViewModel,
+                personalLibraryViewModel = personalLibraryViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(RockstarDestination.Account.route) {
             AccountScreen(
                 currentRoute = RockstarDestination.Account.route,
@@ -239,6 +253,7 @@ fun RockstarNavGraph(
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },
                 onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
                 onMiniPlayerNext = playbackViewModel::next,
+                onSettingsClick = { navController.navigate(RockstarDestination.Settings.route) },
                 onLogoutConfirmed = playbackViewModel::clearQueue,
                 onLoggedOut = {
                     navController.navigate(RockstarDestination.Login.route) {

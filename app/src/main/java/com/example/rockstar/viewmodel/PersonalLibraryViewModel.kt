@@ -188,6 +188,7 @@ class PersonalLibraryViewModel(
         ownerWrite { uid -> repository.removeSongFromPlaylist(uid, playlistId, songId) }
 
     fun clearHistory() = ownerWrite { uid -> repository.clearHistory(uid) }
+    fun clearOwnerData() = ownerWrite { uid -> repository.clearOwnerData(uid) }
 
     fun clearMessages() {
         _uiState.update { it.copy(errorMessage = null, successMessage = null) }

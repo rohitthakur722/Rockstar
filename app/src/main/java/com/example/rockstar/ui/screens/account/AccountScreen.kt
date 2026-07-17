@@ -39,6 +39,7 @@ fun AccountScreen(
     onMiniPlayerClick: () -> Unit,
     onMiniPlayerPlayPause: () -> Unit,
     onMiniPlayerNext: () -> Unit,
+    onSettingsClick: () -> Unit,
     onLogoutConfirmed: () -> Unit,
     onLoggedOut: () -> Unit
 ) {
@@ -114,6 +115,12 @@ fun AccountScreen(
                     RockstarPrimaryButton(
                         text = stringResource(R.string.action_edit_profile),
                         onClick = { showEditDialog = true },
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                    )
+
+                    RockstarPrimaryButton(
+                        text = stringResource(R.string.settings_title),
+                        onClick = onSettingsClick,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                     )
 

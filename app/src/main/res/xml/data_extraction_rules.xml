@@ -1,19 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8" ?>
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Keep user-created local references on this device; MediaStore URIs are not portable. -->
+        <exclude domain="database" path="rockstar.db" />
+        <exclude domain="database" path="rockstar.db-shm" />
+        <exclude domain="database" path="rockstar.db-wal" />
+        <exclude domain="file" path="playback_state.json" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- Device-to-device transfer uses the same conservative policy as cloud backup. -->
+        <exclude domain="database" path="rockstar.db" />
+        <exclude domain="database" path="rockstar.db-shm" />
+        <exclude domain="database" path="rockstar.db-wal" />
+        <exclude domain="file" path="playback_state.json" />
     </device-transfer>
-    -->
 </data-extraction-rules>
