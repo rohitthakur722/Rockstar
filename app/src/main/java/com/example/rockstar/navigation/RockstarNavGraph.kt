@@ -6,8 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.example.rockstar.RockstarApplication
 import com.example.rockstar.playback.Media3PlaybackController
@@ -18,6 +20,7 @@ import com.example.rockstar.ui.screens.auth.LoginScreen
 import com.example.rockstar.ui.screens.auth.RegisterScreen
 import com.example.rockstar.ui.screens.home.HomeScreen
 import com.example.rockstar.ui.screens.liked.LikedScreen
+import com.example.rockstar.ui.screens.playlists.PlaylistDetailScreen
 import com.example.rockstar.ui.screens.playlists.PlaylistsScreen
 import com.example.rockstar.ui.screens.songs.AllSongsScreen
 import com.example.rockstar.ui.screens.player.NowPlayingScreen
@@ -128,10 +131,32 @@ fun RockstarNavGraph(
             PlaylistsScreen(
                 currentRoute = RockstarDestination.Playlists.route,
                 onTabSelected = { destination -> navController.navigateToTab(destination) },
+                viewModel = personalLibraryViewModel,
                 playbackState = playbackState,
+                onPlaylistClick = { playlistId ->
+                    navController.navigate(
+                        RockstarDestination.PlaylistDetail.createRoute(
+                            playlistId
+                        )
+                    )
+                },
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },
                 onMiniPlayerPlayPause = playbackViewModel::togglePlayPause,
                 onMiniPlayerNext = playbackViewModel::next
+            )
+        }
+
+        composable(
+            route = RockstarDestination.PlaylistDetail.route,
+            arguments = listOf(navArgument("playlistId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: return@composable
+            PlaylistDetailScreen(
+                playlistId = playlistId,
+                viewModel = personalLibraryViewModel,
+                playbackState = playbackState,
+                onBack = { navController.popBackStack() },
+                onPlayQueue = playbackViewModel::playSong
             )
         }
 
@@ -176,7 +201,16 @@ fun RockstarNavGraph(
                 onRepeat = playbackViewModel::cycleRepeatMode,
                 isCurrentSongLiked = playbackState.currentSong?.id?.let(personalLibraryState.likedSongIds::contains) == true,
                 isLikeEnabled = playbackState.currentSong?.let { personalLibraryState.activeSongId != it.id && personalLibraryState.isAuthenticated } == true,
+                playlists = personalLibraryState.playlists,
                 onToggleLiked = { playbackState.currentSong?.let(personalLibraryViewModel::toggleLiked) },
+                onAddCurrentSongToPlaylist = { playlistId ->
+                    playbackState.currentSong?.let {
+                        personalLibraryViewModel.addSongToPlaylist(
+                            playlistId,
+                            it
+                        )
+                    }
+                },
                 onSkipToQueueItem = playbackViewModel::skipToQueueItem,
                 onRemoveQueueItem = playbackViewModel::removeQueueItem,
                 onClearQueue = playbackViewModel::clearQueue

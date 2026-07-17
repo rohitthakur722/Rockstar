@@ -2,6 +2,7 @@ package com.example.rockstar.ui.screens.player
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,14 +13,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.rockstar.R
+import com.example.rockstar.data.local.entity.PlaylistEntity
 import com.example.rockstar.ui.components.ArtworkImage
 import com.example.rockstar.ui.components.EmptyState
 import com.example.rockstar.ui.components.PlaybackControls
@@ -57,12 +62,15 @@ fun NowPlayingScreen(
     onRepeat: () -> Unit,
     isCurrentSongLiked: Boolean = false,
     isLikeEnabled: Boolean = true,
+    playlists: List<PlaylistEntity> = emptyList(),
     onToggleLiked: () -> Unit = {},
+    onAddCurrentSongToPlaylist: (Long) -> Unit = {},
     onSkipToQueueItem: (Int) -> Unit,
     onRemoveQueueItem: (Int) -> Unit,
     onClearQueue: () -> Unit
 ) {
     var showQueue by remember { mutableStateOf(false) }
+    var showAddToPlaylist by remember { mutableStateOf(false) }
     Scaffold(
         containerColor = RockstarBackground,
         topBar = {
@@ -83,6 +91,14 @@ fun NowPlayingScreen(
                                 } else {
                                     stringResource(R.string.cd_like_song, playbackState.currentSong.title)
                                 }
+                            )
+                        }
+                    }
+                    if (playbackState.currentSong != null) {
+                        IconButton(onClick = { showAddToPlaylist = true }, enabled = playlists.isNotEmpty()) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = stringResource(R.string.action_add_to_playlist)
                             )
                         }
                     }
@@ -165,6 +181,35 @@ fun NowPlayingScreen(
                 onRepeat = onRepeat
             )
         }
+    }
+
+    if (showAddToPlaylist && playbackState.currentSong != null) {
+        AlertDialog(
+            onDismissRequest = { showAddToPlaylist = false },
+            title = { Text(stringResource(R.string.action_add_to_playlist)) },
+            text = {
+                Column {
+                    if (playlists.isEmpty()) {
+                        Text(stringResource(R.string.playlist_empty_message))
+                    } else {
+                        playlists.forEach { playlist ->
+                            Row {
+                                TextButton(onClick = {
+                                    onAddCurrentSongToPlaylist(playlist.playlistId)
+                                    showAddToPlaylist = false
+                                }) { Text(playlist.name) }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddToPlaylist = false
+                }) { Text(stringResource(R.string.action_cancel)) }
+            }
+        )
     }
 
     if (showQueue) {

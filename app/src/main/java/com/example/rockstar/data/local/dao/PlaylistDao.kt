@@ -15,6 +15,9 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlists WHERE ownerUid = :ownerUid AND playlistId = :playlistId LIMIT 1")
     fun observePlaylist(ownerUid: String, playlistId: Long): Flow<PlaylistEntity?>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM playlists WHERE ownerUid = :ownerUid AND playlistId = :playlistId)")
+    suspend fun exists(ownerUid: String, playlistId: Long): Boolean
+
     @Insert
     suspend fun insert(playlist: PlaylistEntity): Long
 

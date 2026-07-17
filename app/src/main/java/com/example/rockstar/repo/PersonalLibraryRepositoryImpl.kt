@@ -67,6 +67,7 @@ class PersonalLibraryRepositoryImpl(
 
     override suspend fun addSongToPlaylist(ownerUid: String, playlistId: Long, song: Song): Result<Unit> =
         write(ownerUid) {
+            require(playlistDao.exists(ownerUid, playlistId)) { "Playlist not found." }
             savedSongDao.upsert(SavedSongEntity.fromSong(song))
             val position = playlistSongDao.countSongs(playlistId)
             playlistSongDao.add(PlaylistSongEntity(playlistId, song.id, position, System.currentTimeMillis()))
@@ -75,7 +76,9 @@ class PersonalLibraryRepositoryImpl(
 
     override suspend fun removeSongFromPlaylist(ownerUid: String, playlistId: Long, songId: Long): Result<Unit> =
         write(ownerUid) {
+            require(playlistDao.exists(ownerUid, playlistId)) { "Playlist not found." }
             playlistSongDao.remove(playlistId, songId)
+            playlistDao.touch(ownerUid, playlistId, System.currentTimeMillis())
         }
 
     override fun observeRecentHistory(ownerUid: String, limit: Int): Flow<List<Song>> =

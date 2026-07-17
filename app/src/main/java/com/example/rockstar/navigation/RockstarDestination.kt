@@ -16,6 +16,10 @@ sealed class RockstarDestination(val route: String) {
     data object ForgotPassword : RockstarDestination("forgot_password")
     data object Home : RockstarDestination("home")
     data object Playlists : RockstarDestination("playlists")
+    data object PlaylistDetail : RockstarDestination("playlist/{playlistId}") {
+        fun createRoute(playlistId: Long): String = "playlist/$playlistId"
+    }
+
     data object Liked : RockstarDestination("liked")
     data object AllSongs : RockstarDestination("all_songs")
     data object Account : RockstarDestination("account")

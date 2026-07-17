@@ -8,6 +8,8 @@ data class PersonalLibraryUiState(
     val likedSongIds: Set<Long> = emptySet(),
     val likedSongs: List<Song> = emptyList(),
     val playlists: List<PlaylistEntity> = emptyList(),
+    val selectedPlaylistId: Long? = null,
+    val selectedPlaylistSongs: List<Song> = emptyList(),
     val isLoading: Boolean = false,
     val activeSongId: Long? = null,
     val errorMessage: String? = null,
