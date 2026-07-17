@@ -53,9 +53,20 @@ fun RockstarNavGraph(
     val playbackState by playbackViewModel.uiState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val personalLibraryState by personalLibraryViewModel.uiState.collectAsStateWithLifecycle()
+    val musicLibraryState by musicLibraryViewModel.uiState.collectAsStateWithLifecycle()
 
     androidx.compose.runtime.LaunchedEffect(authState.currentUser?.uid) {
         personalLibraryViewModel.setOwnerUid(authState.currentUser?.uid)
+    }
+    androidx.compose.runtime.LaunchedEffect(musicLibraryState.songs) {
+        personalLibraryViewModel.updateLibrarySongs(musicLibraryState.songs)
+    }
+    androidx.compose.runtime.LaunchedEffect(
+        playbackState.currentMediaId,
+        playbackState.positionMs,
+        playbackState.isPlaying
+    ) {
+        personalLibraryViewModel.onPlaybackProgress(playbackState)
     }
 
     NavHost(
@@ -119,6 +130,8 @@ fun RockstarNavGraph(
                 playbackState = playbackState,
                 likedSongIds = personalLibraryState.likedSongIds,
                 likeActionEnabled = { song -> personalLibraryState.activeSongId != song.id && personalLibraryState.isAuthenticated },
+                recentSongs = personalLibraryState.recentSongs,
+                recommendedSongs = personalLibraryState.recommendedSongs,
                 onToggleLiked = personalLibraryViewModel::toggleLiked,
                 onSongSelected = playbackViewModel::playSong,
                 onMiniPlayerClick = { navController.navigateToNowPlaying() },

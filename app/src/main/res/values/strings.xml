@@ -59,7 +59,10 @@
     <string name="home_welcome_subtitle">Good to see you back</string>
     <string name="search_placeholder">Search songs, artists, albums…</string>
     <string name="section_recommendation">Albums in Your Library</string>
-        <string name="section_recently_played">Recently Added</string>
+        <string name="section_recently_played">Recently Played</string>
+        <string
+    name="section_based_on_listening"
+  >Based on Your Listening</string>
         <string name="section_albums_in_library">Albums in Your Library</string>
         <string name="section_recently_added">Recently Added</string>
         <string name="home_search_results">Search Results</string>

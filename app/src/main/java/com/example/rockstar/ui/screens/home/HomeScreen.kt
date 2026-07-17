@@ -63,6 +63,8 @@ fun HomeScreen(
     playbackState: PlaybackUiState,
     likedSongIds: Set<Long> = emptySet(),
     likeActionEnabled: (Song) -> Boolean = { true },
+    recentSongs: List<Song> = emptyList(),
+    recommendedSongs: List<Song> = emptyList(),
     onToggleLiked: (Song) -> Unit = {},
     onSongSelected: (Song, List<Song>) -> Unit,
     onMiniPlayerClick: () -> Unit,
@@ -198,6 +200,44 @@ fun HomeScreen(
                 }
 
                 else -> {
+                    if (recentSongs.isNotEmpty()) {
+                        SectionHeader(title = stringResource(R.string.section_recently_played), showSeeAll = false)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            recentSongs.take(5).forEach { song ->
+                                SongRow(
+                                    song = song,
+                                    isActive = playbackState.currentMediaId == song.id.toString(),
+                                    isPlaying = playbackState.isPlaying,
+                                    isLiked = likedSongIds.contains(song.id),
+                                    isLikeEnabled = likeActionEnabled(song),
+                                    onClick = { onSongSelected(song, recentSongs) },
+                                    onLikeClick = { onToggleLiked(song) }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+
+                    if (recommendedSongs.isNotEmpty()) {
+                        SectionHeader(title = stringResource(R.string.section_based_on_listening), showSeeAll = false)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            recommendedSongs.take(5).forEach { song ->
+                                SongRow(
+                                    song = song,
+                                    isActive = playbackState.currentMediaId == song.id.toString(),
+                                    isPlaying = playbackState.isPlaying,
+                                    isLiked = likedSongIds.contains(song.id),
+                                    isLikeEnabled = likeActionEnabled(song),
+                                    onClick = { onSongSelected(song, recommendedSongs) },
+                                    onLikeClick = { onToggleLiked(song) }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+
                     SectionHeader(title = stringResource(R.string.section_albums_in_library), showSeeAll = false)
                     Spacer(modifier = Modifier.height(16.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
